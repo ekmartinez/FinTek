@@ -1,2 +1,2 @@
-# FinanceTech
+# FinTech
 C++ practice problem.
