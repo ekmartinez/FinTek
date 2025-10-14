@@ -106,7 +106,7 @@ int main(void) {
 		std::cin >> option; 
 		switch (option) {
 			case 1: 
-				std::cout << "Where now ready to add a transactions from the menu" << std::endl;
+				std::cout << "We're now ready to add a transactions from the menu" << std::endl;
 				break;
 			case 2:
 				pfs.displayTransaction();
