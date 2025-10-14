@@ -1,22 +1,38 @@
-/*
-'########:'####:'##::: ##:'########:'########:'##:::'##::::::::::'##::::'##::::
- ##.....::. ##:: ###:: ##:... ##..:: ##.....:: ##::'##:::::::::::. ##:::. ##:::
- ##:::::::: ##:: ####: ##:::: ##:::: ##::::::: ##:'##:::::::::::::. ##:::. ##::
- ######:::: ##:: ## ## ##:::: ##:::: ######::: #####::::'#######:::. ##:::. ##:
- ##...::::: ##:: ##. ####:::: ##:::: ##...:::: ##. ##:::........::: ##:::: ##::
- ##:::::::: ##:: ##:. ###:::: ##:::: ##::::::: ##:. ##:::::::::::: ##:::: ##:::
- ##:::::::'####: ##::. ##:::: ##:::: ########: ##::. ##:::::::::: ##:::: ##::::
-..::::::::....::..::::..:::::..:::::........::..::::..:::::::::::..:::::..:::::
-*/
 #include <map>
 #include <vector>
 #include <string>
 #include <iostream>
 #include <algorithm>
 
+void printHeader() {
+
+	std::cout <<"" 
+			<< "########:'####:'##::: ##:'########:'########:'##:::'##::::::::::'##::::'##::::\n"
+			<< "##.....::. ##:: ###:: ##:... ##..:: ##.....:: ##::'##:::::::::::. ##:::. ##:::\n"
+			<< "##:::::::: ##:: ####: ##:::: ##:::: ##::::::: ##:'##:::::::::::::. ##:::. ##::\n"
+			<< "######:::: ##:: ## ## ##:::: ##:::: ######::: #####::::'#######:::. ##:::. ##:\n"
+			<< "##...::::: ##:: ##. ####:::: ##:::: ##...:::: ##. ##:::........::: ##:::: ##::\n"
+			<< "##:::::::: ##:: ##:. ###:::: ##:::: ##::::::: ##:. ##:::::::::::: ##:::: ##:::\n"
+			<< "##:::::::'####: ##::. ##:::: ##:::: ########: ##::. ##:::::::::: ##:::: ##::::\n"
+			<< "e..::::::::...::..::::..:::::..:::::.......z:..::::..::::::::::..:::::..:::::w\n";
+
+	std::cout << "FinTek - Personal Finance System\n" << std::endl;
+}
+
 class PersonalFinanceSystem {
 	private:
 		std::vector<std::string> category;
+
+		struct Transactions {
+			int id;
+			std::string date;
+			std::string desc;
+			std::string cat;
+			double amt;
+		};
+
+		std::vector<Transactions> transactions;
+
 	public:
 		
 		void addCategory(const std::string& str) {
@@ -40,8 +56,12 @@ class PersonalFinanceSystem {
 			std::cout << "Deleted: " << cat << std::endl;
 		}
 
-		void addTransaction() {
-			std::cout << "Hello from addTransaction()\n";
+		void addTransaction(int id, const std::string& date, const std::string& desc, 
+							const std::string& cat, const double amt) {
+
+			Transactions newTransaction = {id, date, desc, cat, amt};
+			transactions.push_back(newTransaction);
+			std::cout << "Added: " << id << date << desc << cat << amt << std::endl;
 		}
 
 		void displayTransaction() {
@@ -64,19 +84,33 @@ class PersonalFinanceSystem {
 		}
 };
 
+
 int main(void) {
 
 	PersonalFinanceSystem pfs;
-	std:: cout << "FinTek - Personal Finance System\n" << std::endl;
+	printHeader();
 
-	// To test category array
-	pfs.addCategory("Groceries");
-	pfs.addCategory("Medicine");
-	pfs.addCategory("Health Care");
-	pfs.addCategory("Contributions");
-	pfs.displayCategories();
-	pfs.deleteCategory("Groceries");
-	pfs.displayCategories();
+	int option = 0;	
+	std::cout << "Welcome to the Personal Finance Tracker!\n" 
+				<< "---------------------------------------\n" 
+				<< "\t1. Add Transaction\n"
+				<< "\t2. Display Transactions\n"
+				<< "\t3. Update Transaction\n"
+				<< "\t4. Delete Transaction\n"
+				<< "\t5. Summary Report\n"
+				<< "\t6. Exit\n"
+				<< "\nChoose an option: ";
+
+	std::cin >> option; 
+	switch (option) {
+		case 1: 
+			std::cout << "Where now ready to add a transactions from the menu" << std::endl;
+			break;
+		default:
+			std::cout << "Nevermind" << std::endl;
+		
+	}
+
 	return 0;
 }
 
