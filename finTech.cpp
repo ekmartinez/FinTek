@@ -1,12 +1,13 @@
 #include <map>
-#include <vector>
 #include <string>
+#include <vector>
+#include <cstdlib>
 #include <iostream>
 #include <algorithm>
 
 void printHeader() {
-
-	std::cout <<"" 
+	system("clear");
+	std::cout <<"\n" 
 			<< "########:'####:'##::: ##:'########:'########:'##:::'##::::::::::'##::::'##::::\n"
 			<< "##.....::. ##:: ###:: ##:... ##..:: ##.....:: ##::'##:::::::::::. ##:::. ##:::\n"
 			<< "##:::::::: ##:: ####: ##:::: ##:::: ##::::::: ##:'##:::::::::::::. ##:::. ##::\n"
@@ -16,7 +17,8 @@ void printHeader() {
 			<< "##:::::::'####: ##::. ##:::: ##:::: ########: ##::. ##:::::::::: ##:::: ##::::\n"
 			<< "e..::::::::...::..::::..:::::..:::::.......z:..::::..::::::::::..:::::..:::::w\n";
 
-	std::cout << "FinTek - Personal Finance System\n" << std::endl;
+	std::cout << "\nFinTek - Personal Finance System\n" << std::endl;
+
 }
 
 class PersonalFinanceSystem {
@@ -84,33 +86,52 @@ class PersonalFinanceSystem {
 		}
 };
 
-
 int main(void) {
 
-	PersonalFinanceSystem pfs;
 	printHeader();
+	PersonalFinanceSystem pfs;
 
-	int option = 0;	
-	std::cout << "Welcome to the Personal Finance Tracker!\n" 
-				<< "---------------------------------------\n" 
-				<< "\t1. Add Transaction\n"
-				<< "\t2. Display Transactions\n"
-				<< "\t3. Update Transaction\n"
-				<< "\t4. Delete Transaction\n"
-				<< "\t5. Summary Report\n"
-				<< "\t6. Exit\n"
-				<< "\nChoose an option: ";
+	while(0) {
+		int option = 0;	
+		std::cout << "Welcome to the Personal Finance Tracker!\n" 
+					<< "---------------------------------------\n" 
+					<< "\t1. Add Transaction\n"
+					<< "\t2. Display Transactions\n"
+					<< "\t3. Update Transaction\n"
+					<< "\t4. Delete Transaction\n"
+					<< "\t5. Summary Report\n"
+					<< "\t6. Exit\n"
+					<< "\nChoose an option: ";
 
-	std::cin >> option; 
-	switch (option) {
-		case 1: 
-			std::cout << "Where now ready to add a transactions from the menu" << std::endl;
-			break;
-		default:
-			std::cout << "Nevermind" << std::endl;
-		
+		std::cin >> option; 
+		switch (option) {
+			case 1: 
+				std::cout << "Where now ready to add a transactions from the menu" << std::endl;
+				break;
+			case 2:
+				pfs.displayTransaction();
+				std::cout << "\nYou ordered a display of the records." << std::endl;
+				break;
+			case 3:
+				pfs.updateTransaction();
+				std::cout << "You ordered a transaction update" << std::endl;
+				break;
+			case 4:
+				pfs.deleteTransaction();
+				std::cout << "You ordered to delete a transaction" << std::endl;
+				break;
+			case 5:
+				pfs.summaryReport();
+				std::cout << "You ordered a summary report" << std::endl;
+				break;
+			case 6:
+				std::cout << "Thank you for using this application!, see you later." << std::endl;
+				exit(0);
+			default:
+				std::cout << "Nevermind" << std::endl;
+			
+		}
 	}
-
 	return 0;
 }
 
