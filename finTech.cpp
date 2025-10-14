@@ -12,24 +12,32 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <algorithm>
 
 class PersonalFinanceSystem {
 	private:
-		// Data structure
 		std::vector<std::string> category;
 	public:
 		
 		void addCategory(const std::string& str) {
 			category.push_back(str);
-			std::cout << "Hello from addTransaction()\n";
+			std::cout << "Added: " << str << std::endl;
 		}
 		
 		void displayCategories() const {
-			std::cout << "Categories: ";
+			std::cout << "\nCategories\n" << "-----------\n";
 			for (size_t i = 0; i < category.size(); ++i)  {
 				std::cout << category[i] << ", \n";
 			}
-			std::cout << "Hello from displayCategories()\n";
+		}
+
+		void deleteCategory(const std::string& cat) {
+			category.erase(
+					std::remove(category.begin(), category.end(), cat),
+					category.end()
+			);
+
+			std::cout << "Deleted: " << cat << std::endl;
 		}
 
 		void addTransaction() {
@@ -59,6 +67,7 @@ class PersonalFinanceSystem {
 int main(void) {
 
 	PersonalFinanceSystem pfs;
+	std:: cout << "FinTek - Personal Finance System\n" << std::endl;
 
 	// To test category array
 	pfs.addCategory("Groceries");
@@ -66,7 +75,8 @@ int main(void) {
 	pfs.addCategory("Health Care");
 	pfs.addCategory("Contributions");
 	pfs.displayCategories();
-
+	pfs.deleteCategory("Groceries");
+	pfs.displayCategories();
 	return 0;
 }
 
