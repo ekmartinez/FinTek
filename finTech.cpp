@@ -36,7 +36,6 @@ class PersonalFinanceSystem {
 		std::vector<Transactions> transactions;
 
 	public:
-		
 		void addCategory(const std::string& str) {
 			category.push_back(str);
 			std::cout << "Added: " << str << std::endl;
@@ -70,19 +69,23 @@ class PersonalFinanceSystem {
 									<< cat << "\n"
 									<< amt << std::endl;
 		}
+		
+		void displayTransaction() const {
+			for (const auto& transaction : transactions) {
+				std::cout << "Id: " << transaction.id << std::endl;
+			}
 
-		void displayTransaction() {
-			std::cout << "Hello from displayTransaction()\n";
 		}
+
+
+
 
 		void updateTransaction() { 
 			std::cout << "Hello from updateTransaction()\n";
 		}
-
 		void deleteTransaction() {
 			std::cout << "Hello from deleteTransaction()\n";
 		}
-
 		void summaryReport() {
 			std::cout << "Hello from summaryReport()\n";
 		}
@@ -135,60 +138,59 @@ int main(void) {
 					std::cin >> amount;
 
 					std::cout << "\nData Entered and ready to be saved: \n"
-								<< id << std::endl
-								<< date << std::endl
-								<< description << std::endl
-								<< cat << std::endl
-								<< (double)amount << std::endl;
+								<< "Id: " << id << std::endl
+								<< "Date: "<< date << std::endl
+								<< "Description: " << description << std::endl
+								<< "Category: " << cat << std::endl
+								<< "Amount: " << (double)amount << std::endl;
 
-					std::cout << "\nPress Enter to Continue... ";
-					
-					// Double cin.get() needed to get enter from prev options.
-					std::cin.get();
-					std::cin.get();
-					
-					std::cout << "If the above is correct (save? y|n) >>> " << std::endl;
+					std::cout << "\nSave? (y|n) >> ";
 					std::string input;
 					std::cin >> input;
-					
+										
 					if (input == "y") {
 						pfs.addTransaction(id, date, description, cat, amount);
-
 						char opts;
-						std::cout << "Do you wish to add another transaction? (y|n) >>> " << std::endl;
+						std::cout << "Do you wish to add another transaction? (y|n) >>> ";
 						std::cin >> opts;
-
-						if (opts == 'y') { break; }
-
+						if (opts == 'y') { continue; }
 					} else if (input == "n") {
-						;;
-					} else { std::cout << "Wrong option." << std::endl; }
-					
-					break;
+						printHeader();
+						break;
+					} else { 
+						std::cout << "Wrong option." << std::endl; 
+						continue;
+						}
+				break;
 				}
 			}
-
 			case 2: {
+				printHeader();
 				pfs.displayTransaction();
-				std::cout << "\nYou ordered a display of the records." << std::endl;
+				std::cout << "Press Enter to continue... " << std::endl;
+				std::cin.get(); std::cin.get(); // One wont work.
 				break;
 			}
 			case 3: {
+				printHeader();
 				pfs.updateTransaction();
 				std::cout << "You ordered a transaction update" << std::endl;
 				break;
 			}
 			case 4: {
+				printHeader();
 				pfs.deleteTransaction();
 				std::cout << "You ordered to delete a transaction" << std::endl;
 				break;
 			}
 			case 5: {
+				printHeader();
 				pfs.summaryReport();
 				std::cout << "You ordered a summary report" << std::endl;
 				break;
 			}
 			case 6: {
+				printHeader();
 				std::cout << "\nThank you for using this application!, see you later." << std::endl;
 				exit(0);
 			}
@@ -203,3 +205,13 @@ int main(void) {
 }
 
 // Add permanent storage
+
+/*
+// Press Enter to Continue...
+// Double cin.get() needed to account for prev
+// Enters.
+std::cout << "Press Enter to continue... " <<< std::endl;
+std::cin.get();
+std::cin.get();
+*/
+
