@@ -1,9 +1,9 @@
 #include <map>
 #include <string>
 #include <vector>
-#include <cstdlib>
+#include <cstdlib> // for system
 #include <iostream>
-#include <algorithm>
+#include <algorithm> // for remove
 
 void printHeader() {
 	system("clear");
@@ -15,7 +15,7 @@ void printHeader() {
 			<< "##...::::: ##:: ##. ####:::: ##:::: ##...:::: ##. ##:::........::: ##:::: ##::\n"
 			<< "##:::::::: ##:: ##:. ###:::: ##:::: ##::::::: ##:. ##:::::::::::: ##:::: ##:::\n"
 			<< "##:::::::'####: ##::. ##:::: ##:::: ########: ##::. ##:::::::::: ##:::: ##::::\n"
-			<< "e..::::::::...::..::::..:::::..:::::.......z:..::::..::::::::::..:::::..:::::w\n";
+			<< "E..::::::::...::..::::..:::::..:::::.......Z:..::::..::::::::::..:::::..:::::W\n";
 
 	std::cout << "\nFinTek - Personal Finance System\n" << std::endl;
 
@@ -63,14 +63,19 @@ class PersonalFinanceSystem {
 
 			Transactions newTransaction = {id, date, desc, cat, amt};
 			transactions.push_back(newTransaction);
-			std::cout << "Added: " << id << date << desc << cat << amt << std::endl;
+
+			std::cout << "Added: \n" << id << "\n" 
+									<< date << "\n"
+									<< desc << "\n"
+									<< cat << "\n"
+									<< amt << std::endl;
 		}
 
 		void displayTransaction() {
 			std::cout << "Hello from displayTransaction()\n";
 		}
 
-		void updateTransaction() {
+		void updateTransaction() { 
 			std::cout << "Hello from updateTransaction()\n";
 		}
 
@@ -84,6 +89,10 @@ class PersonalFinanceSystem {
 		void exit() {
 			std::cout << "Exiting Application ... \n";
 		}
+		int getLastId() {
+			if (transactions.empty()) { return 0; }
+			return transactions.back().id;
+		}
 };
 
 int main(void) {
@@ -91,9 +100,9 @@ int main(void) {
 	printHeader();
 	PersonalFinanceSystem pfs;
 
-	while(0) {
+	while(1) {
 		int option = 0;	
-		std::cout << "Welcome to the Personal Finance Tracker!\n" 
+		std::cout << "\nWelcome to the Personal Finance Tracker!\n" 
 					<< "---------------------------------------\n" 
 					<< "\t1. Add Transaction\n"
 					<< "\t2. Display Transactions\n"
@@ -105,30 +114,88 @@ int main(void) {
 
 		std::cin >> option; 
 		switch (option) {
-			case 1: 
-				std::cout << "We're now ready to add a transactions from the menu" << std::endl;
-				break;
-			case 2:
+			case 1: { 
+				while(1) {
+					int id = pfs.getLastId() + 1;
+					
+					std::string date = "";
+					std::cout << "Enter transaction's date: ";
+					std::cin >> date;
+
+					std::string description = "";
+					std::cout << "Enter transaction's description: ";
+					std::cin >> description;
+
+					std::string cat = "";
+					std::cout << "Enter transaction's category: ";
+					std::cin >> cat;
+
+					double amount = 0.00;
+					std::cout << "Enter transaction's amount: ";
+					std::cin >> amount;
+
+					std::cout << "\nData Entered and ready to be saved: \n"
+								<< id << std::endl
+								<< date << std::endl
+								<< description << std::endl
+								<< cat << std::endl
+								<< (double)amount << std::endl;
+
+					std::cout << "\nPress Enter to Continue... ";
+					
+					// Double cin.get() needed to get enter from prev options.
+					std::cin.get();
+					std::cin.get();
+					
+					std::cout << "If the above is correct (save? y|n) >>> " << std::endl;
+					std::string input;
+					std::cin >> input;
+					
+					if (input == "y") {
+						pfs.addTransaction(id, date, description, cat, amount);
+
+						char opts;
+						std::cout << "Do you wish to add another transaction? (y|n) >>> " << std::endl;
+						std::cin >> opts;
+
+						if (opts == 'y') { break; }
+
+					} else if (input == "n") {
+						;;
+					} else { std::cout << "Wrong option." << std::endl; }
+					
+					break;
+				}
+			}
+
+			case 2: {
 				pfs.displayTransaction();
 				std::cout << "\nYou ordered a display of the records." << std::endl;
 				break;
-			case 3:
+			}
+			case 3: {
 				pfs.updateTransaction();
 				std::cout << "You ordered a transaction update" << std::endl;
 				break;
-			case 4:
+			}
+			case 4: {
 				pfs.deleteTransaction();
 				std::cout << "You ordered to delete a transaction" << std::endl;
 				break;
-			case 5:
+			}
+			case 5: {
 				pfs.summaryReport();
 				std::cout << "You ordered a summary report" << std::endl;
 				break;
-			case 6:
-				std::cout << "Thank you for using this application!, see you later." << std::endl;
+			}
+			case 6: {
+				std::cout << "\nThank you for using this application!, see you later." << std::endl;
 				exit(0);
-			default:
+			}
+			default: {
 				std::cout << "Nevermind" << std::endl;
+				break;
+			}
 			
 		}
 	}
