@@ -1,6 +1,7 @@
 #include <map>
 #include <string>
 #include <vector>
+// #include <iomanip> // for setw
 #include <cstdlib> // for system
 #include <iostream>
 #include <algorithm> // for remove
@@ -72,13 +73,14 @@ class PersonalFinanceSystem {
 		
 		void displayTransaction() const {
 			for (const auto& transaction : transactions) {
-				std::cout << "Id: " << transaction.id << std::endl;
+				std::cout << transaction.id << "\t"; 
+				std::cout << transaction.date << "\t"; 
+				std::cout << transaction.desc << "\t"; 
+				std::cout << transaction.cat << "\t"; 
+				std::cout << transaction.amt << "\t"; 
+				std::cout << "\n";
 			}
-
 		}
-
-
-
 
 		void updateTransaction() { 
 			std::cout << "Hello from updateTransaction()\n";
@@ -100,10 +102,10 @@ class PersonalFinanceSystem {
 
 int main(void) {
 
-	printHeader();
 	PersonalFinanceSystem pfs;
 
 	while(1) {
+		printHeader();
 		int option = 0;	
 		std::cout << "\nWelcome to the Personal Finance Tracker!\n" 
 					<< "---------------------------------------\n" 
@@ -161,8 +163,9 @@ int main(void) {
 						std::cout << "Wrong option." << std::endl; 
 						continue;
 						}
-				break;
+					break;
 				}
+				break;
 			}
 			case 2: {
 				printHeader();
