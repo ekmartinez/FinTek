@@ -64,14 +64,10 @@ class PersonalFinanceSystem {
 			Transactions newTransaction = {id, date, desc, cat, amt};
 			transactions.push_back(newTransaction);
 
-			std::cout << "Added: \n" << id << "\n" 
-									<< date << "\n"
-									<< desc << "\n"
-									<< cat << "\n"
-									<< amt << std::endl;
+			std::cout << "Data saved." << std::endl;
 		}
 		
-		void displayTransaction() const {
+		void displayTransactions() const {
 			for (const auto& transaction : transactions) {
 				std::cout << transaction.id << "\t"; 
 				std::cout << transaction.date << "\t"; 
@@ -82,9 +78,50 @@ class PersonalFinanceSystem {
 			}
 		}
 
-		void updateTransaction() { 
-			std::cout << "Hello from updateTransaction()\n";
+		int searchTransaction(const int id) { 
+			for (const auto& transaction : transactions) {
+				if (transaction.id == id) {
+					std::cout << "Id found and ready for updating\n";
+					std::cout << "Id\tDate\tDesc\tCategory\tAmount\n";
+					std::cout << transaction.id << "\t"; 
+					std::cout << transaction.date << "\t"; 
+					std::cout << transaction.desc << "\t"; 
+					std::cout << transaction.cat << "\t"; 
+					std::cout << transaction.amt << "\t"; 
+
+					return 1;
+
+					} else { std::cout << "\nId not found." << std::endl; }
+			}
+			return 0;
 		}
+		void updateTransaction(int id, int fieldToEdit, std::string date) {
+			for (const auto& transaction : transactions) {
+				if (transaction.id == id) {
+					switch(fieldToEdit) {
+						case 0: { 
+							std::cout << "Edit Date" << std::endl;
+							transaction.date = date;
+							break;
+						}
+						case 1: { 
+							std::cout << "Edit Description" << std::endl;
+							break;
+						}
+						case 2: { 
+							std::cout << "Edit Category" << std::endl;
+							break;
+						}
+						case 3: { 
+							std::cout << "Edit Amount" << std::endl;
+							break;
+						}
+					}
+				}else { std::cout << "\nId not found." << std::endl; }
+			}
+			
+		}
+
 		void deleteTransaction() {
 			std::cout << "Hello from deleteTransaction()\n";
 		}
@@ -130,10 +167,9 @@ int main(void) {
 					std::string description = "";
 					std::cout << "Enter transaction's description: ";
 					std::cin >> description;
-
-					std::string cat = "";
+					std::string cat1 = "";
 					std::cout << "Enter transaction's category: ";
-					std::cin >> cat;
+					std::cin >> cat1;
 
 					double amount = 0.00;
 					std::cout << "Enter transaction's amount: ";
@@ -143,7 +179,7 @@ int main(void) {
 								<< "Id: " << id << std::endl
 								<< "Date: "<< date << std::endl
 								<< "Description: " << description << std::endl
-								<< "Category: " << cat << std::endl
+								<< "Category: " << cat1 << std::endl
 								<< "Amount: " << (double)amount << std::endl;
 
 					std::cout << "\nSave? (y|n) >> ";
@@ -151,7 +187,7 @@ int main(void) {
 					std::cin >> input;
 										
 					if (input == "y") {
-						pfs.addTransaction(id, date, description, cat, amount);
+						pfs.addTransaction(id, date, description, cat1, amount);
 						char opts;
 						std::cout << "Do you wish to add another transaction? (y|n) >>> ";
 						std::cin >> opts;
@@ -169,17 +205,48 @@ int main(void) {
 			}
 			case 2: {
 				printHeader();
-				pfs.displayTransaction();
+				pfs.displayTransactions();
 				std::cout << "Press Enter to continue... " << std::endl;
-				std::cin.get(); std::cin.get(); // One wont work.
+				std::cin.get(); std::cin.get();
 				break;
 			}
 			case 3: {
 				printHeader();
-				pfs.updateTransaction();
-				std::cout << "You ordered a transaction update" << std::endl;
-				break;
+				// Search for Id of transaction
+				int idOfTrans = 0;
+				std::cout << "Enter Id of transaction: ";
+				std::cin >> idOfTrans;
+
+				// If id found
+				if (pfs.searchTransaction(idOfTrans) == 1) { 
+					std::cout << "What do you want to change?"
+						<< "\t1-" << "Date\n"
+						<< "\t2-" << "Description\n"
+						<< "\t3-" << "Category\n"
+						<< "\t4-" << "Amount\n"
+						<< "Choose an option: " 
+						<< std::endl;
+
+					int optn = 0;
+					std::cin >> optn;
+
+					switch (optn) {
+						case 1: { 
+							std::string date;
+							std::cout << "Enter new date >>> "; 
+							std::cin >> date;
+							// update transaction 
+							break;
+						}
+						case 2: {}
+						case 3: {}
+						case 4: {}
+						case 5: {}
+						default: {}
+					}
+				}
 			}
+
 			case 4: {
 				printHeader();
 				pfs.deleteTransaction();
