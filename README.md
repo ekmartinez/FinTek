@@ -15,15 +15,13 @@ E..::::::::...::..::::..:::::..:::::.......Z:..::::..::::::::::..:::::..:::::W
 
 
 FinTek - Personal Finance System
-
-Welcome to the Personal Finance Tracker!
----------------------------------------
-        1. Add Transaction
-        2. Display Transactions
-        3. Update Transaction
-        4. Delete Transaction
-        5. Summary Report
-        6. Exit
+---------------------------------
+    1. Add Transaction
+    2. Display Transactions
+    3. Update Transaction
+    4. Delete Transaction
+    5. Summary Report
+    6. Exit
 
 Choose an option:
 
