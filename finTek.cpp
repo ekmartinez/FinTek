@@ -115,7 +115,21 @@ class PersonalFinanceSystem {
 				} else { std::cout << "\nId not found." << std::endl; }
 			}
 		}
+		
+		int findIndexById(int targetId) {
 
+			for (size_t i = 0; i < transactions.size(); ++i) {
+				if (transactions[i].id == targetId) { 
+					return static_cast<int>(i); 
+				}
+			}
+
+			return -1;
+		}
+
+		void updateDate(const int id, std::string newDate) {
+			;;
+		}
 		void deleteTransaction() {
 			std::cout << "Hello from deleteTransaction()\n";
 		}
@@ -217,14 +231,9 @@ int main(void) {
 					int id = pfs.getLastId() + 1;
 					
 					std::string date = getCurrentDate();
+					std::cout << "Enter transaction's date: ";
+					std::cin >> date;
 
-					while(1) {
-						std::cout << "Enter transaction's date: ";
-						std::cin >> date;
-
-						// Date Data Entry Validation
-					}
-				
 					std::string description = "";
 					std::cout << "Enter transaction's description: ";
 					std::cin >> description;
@@ -253,6 +262,7 @@ int main(void) {
 						char opts;
 						std::cout << "Do you wish to add another transaction? (y|n) >>> ";
 						std::cin >> opts;
+						
 						if (opts == 'y') { continue; }
 					} else if (input == "n") {
 						printHeader();
@@ -260,7 +270,7 @@ int main(void) {
 					} else { 
 						std::cout << "Wrong option." << std::endl; 
 						continue;
-						}
+					}
 					break;
 				}
 				break;
@@ -273,6 +283,8 @@ int main(void) {
 				break;
 			}
 			case 3: {
+				// Update Transaction 
+
 				printHeader();
 				// Search for Id of transaction
 				int idOfTrans = 0;
@@ -294,10 +306,13 @@ int main(void) {
 
 					switch (optn) {
 						case 1: { 
+							// update transaction 
 							std::string date;
 							std::cout << "Enter new date >>> "; 
 							std::cin >> date;
-							// update transaction 
+							if (isValidDate(date)) {
+								;;
+							}
 							break;
 						}
 						case 2: {}
@@ -323,21 +338,23 @@ int main(void) {
 			}
 			case 6: {
 				printHeader();
-				std::cout << "\nThank you for using this application!, see you later." << std::endl;
+				std::cout << "\nThank you for using this application!, see you later.\n";
 				exit(0);
 			}
 			case 7: {
-				// Temp: For testing
 				printHeader();
-				std::cout << "\nYou have accessed the secret Location!\n";
+				std::cout << "\nYou have accessed the secret Location!\n\n";
 
-				std::string d;
-				std::cout << "Enter date to validate: ";
-				std::cin >> d;
+				std::cout << "Enter id to find index: ";
 
-				if (isValidDate(d)) { 
-					std::cout << "Date is valid" << std::endl; 
-				} else {std::cout << "Date is not valid" << std::endl;}
+				int id;
+				std::cin >> id;
+				int index = pfs.findIndexById((int) id);
+
+				if (index != -1) { 
+					std::cout << "Id of " << id << " found, index #: "
+						<< index << std::endl; 
+				} else { std::cout << "Failed!!!" << std::endl; }
 
 				std::cout << "Press Enter to continue... " << std::endl;
 				std::cin.get();
@@ -350,7 +367,6 @@ int main(void) {
 				std::cout << "Nevermind." << std::endl;
 				break;
 			}
-			
 		}
 	}
 	return 0;
