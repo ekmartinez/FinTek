@@ -4,14 +4,14 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <regex>
 #include <cstdlib> // for system
 #include <iostream>
 #include <algorithm> // for remove
 
-
-
 class PersonalFinanceSystem {
 	private:
+		
 		std::vector<std::string> category;
 
 		struct Transactions {
@@ -25,6 +25,7 @@ class PersonalFinanceSystem {
 		std::vector<Transactions> transactions;
 
 	public:
+
 		void addCategory(const std::string& str) {
 			category.push_back(str);
 			std::cout << "Added: " << str << std::endl;
@@ -111,7 +112,7 @@ class PersonalFinanceSystem {
 							break;
 						}
 					}
-				}else { std::cout << "\nId not found." << std::endl; }
+				} else { std::cout << "\nId not found." << std::endl; }
 			}
 		}
 
@@ -156,6 +157,42 @@ std::string getCurrentDate() {
 	return oss.str();
 }
 
+int daysInMonth(int year, int month) {
+	static const int baseDays[] = {31,28,31,30,31,30,31,31,30,31,30,31};
+
+	if (month < 1 || month > 12) { return 0; }
+
+	int days = baseDays[month - 1]; // why months
+									
+		// Adjust February for leap years
+		bool isLeap = (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
+		if (month == 2 && isLeap) { days = 29; }
+		
+		return days;
+}
+
+// Validate date string in "YYYY-MM-DD"
+bool isValidDate(const std::string& date) {
+	static const std::regex pattern(R"(^(\d{4})-(\d{2})-(\d{2}))");
+	std::smatch match;
+
+	// Check basic format
+	if (!std::regex_match(date, match, pattern)) { return false; }
+	
+	int year = std::stoi(match[1]);
+	int month = std::stoi(match[2]);
+	int day = std::stoi(match[3]);
+
+	// Get days in the given month/year
+	int maxDay = daysInMonth(year, month);
+
+	// If month or day are invalid, return false
+	if (maxDay == 0 || day < 1 || day > maxDay) { return false; }
+
+	return true;
+
+}
+
 int main(void) {
 
 	PersonalFinanceSystem pfs;
@@ -179,16 +216,22 @@ int main(void) {
 				while(1) {
 					int id = pfs.getLastId() + 1;
 					
-					std::string date = "";
-					std::cout << "Enter transaction's date: ";
-					std::cin >> date;
+					std::string date = getCurrentDate();
 
+					while(1) {
+						std::cout << "Enter transaction's date: ";
+						std::cin >> date;
+
+						// Date Data Entry Validation
+					}
+				
 					std::string description = "";
 					std::cout << "Enter transaction's description: ";
 					std::cin >> description;
-					std::string cat1 = "";
+
+					std::string cat = "";
 					std::cout << "Enter transaction's category: ";
-					std::cin >> cat1;
+					std::cin >> cat;
 
 					double amount = 0.00;
 					std::cout << "Enter transaction's amount: ";
@@ -198,7 +241,7 @@ int main(void) {
 								<< "Id: " << id << std::endl
 								<< "Date: "<< date << std::endl
 								<< "Description: " << description << std::endl
-								<< "Category: " << cat1 << std::endl
+								<< "Category: " << cat << std::endl
 								<< "Amount: " << (double)amount << std::endl;
 
 					std::cout << "\nSave? (y|n) >> ";
@@ -206,7 +249,7 @@ int main(void) {
 					std::cin >> input;
 										
 					if (input == "y") {
-						pfs.addTransaction(id, date, description, cat1, amount);
+						pfs.addTransaction(id, date, description, cat, amount);
 						char opts;
 						std::cout << "Do you wish to add another transaction? (y|n) >>> ";
 						std::cin >> opts;
@@ -284,17 +327,27 @@ int main(void) {
 				exit(0);
 			}
 			case 7: {
+				// Temp: For testing
 				printHeader();
-				std::cout << "\nYou have accessed the secret option! " << std::endl;
-				std::cout << "Today is: " << getCurrentDate() << std::endl;
+				std::cout << "\nYou have accessed the secret Location!\n";
+
+				std::string d;
+				std::cout << "Enter date to validate: ";
+				std::cin >> d;
+
+				if (isValidDate(d)) { 
+					std::cout << "Date is valid" << std::endl; 
+				} else {std::cout << "Date is not valid" << std::endl;}
+
 				std::cout << "Press Enter to continue... " << std::endl;
 				std::cin.get();
 				std::cin.get();
+
 				break;
 			}
 
 			default: {
-				std::cout << "Nevermind" << std::endl;
+				std::cout << "Nevermind." << std::endl;
 				break;
 			}
 			
