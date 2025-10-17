@@ -8,6 +8,9 @@
 #include <cstdlib> // for system
 #include <iostream>
 #include <algorithm> // for remove
+					 //
+bool isValidDate(const std::string& date);
+std::string  safeInput(std::size_t maxLen, const std::string&);
 
 class PersonalFinanceSystem {
 	private:
@@ -85,37 +88,6 @@ class PersonalFinanceSystem {
 			return 0;
 		}
 
-		void updateTransaction(const int id, const int fieldToEdit, 
-				const std::string date, std::string desc, std::string cat, double amt) {
-			// Pending Data validation
-			for (auto& transaction : transactions) {
-				if (transaction.id == id) {
-					switch(fieldToEdit) {
-						case 0: { 
-							// Edit date - 
-							transaction.date = date;
-							break;
-						}
-						case 1: { 
-							// Edit Description
-							transaction.desc = desc;
-							break;
-						}
-						case 2: { 
-							// Edit Category
-							transaction.cat = cat;
-							break;
-						}
-						case 3: { 
-							// Edit Amount
-							transaction.amt = amt;
-							break;
-						}
-					}
-				} else { std::cout << "\nId not found." << std::endl; }
-			}
-		}
-		
 		int findIndexById(int targetId) {
 
 			for (size_t i = 0; i < transactions.size(); ++i) {
@@ -127,9 +99,31 @@ class PersonalFinanceSystem {
 			return -1;
 		}
 
-		void updateDate(const int id, std::string newDate) {
-			;;
+		void updateDate(const int id, const std::string newDate) {
+			int index = findIndexById(id);
+			if (isValidDate(newDate)) {
+				transactions[index].date = newDate;
+			} else { 
+				std::cout << "Something went wrong in updateDate()\n";
+			} 
 		}
+		
+		void updateDescription(const int id, const std::string newDesc) { 
+			int i = findIndexById(id);
+			int maxLength = 10;
+			transactions[i].desc = safeInput(maxLength, newDesc);
+		}
+		void updateCategory(const int id, const std::string newCategory) { 
+			int i = findIndexById(id);
+			int maxLength = 10;
+			transactions[i].cat = safeInput(maxLength, newCategory);
+		}
+
+		void updateAmount(const int id, const double newAmt) { 
+			int i = findIndexById(id);
+			transactions[i].amt = newAmt;
+		}
+
 		void deleteTransaction() {
 			std::cout << "Hello from deleteTransaction()\n";
 		}
@@ -204,7 +198,19 @@ bool isValidDate(const std::string& date) {
 	if (maxDay == 0 || day < 1 || day > maxDay) { return false; }
 
 	return true;
+}
+std::string safeInput(std::size_t maxLen, const std::string& txt) {
 
+	std::string input;
+	input.reserve(maxLen); // avoid reallocations
+	
+	char c;
+	while(std::cin.get(c)) {
+		if (c == '\n') { break; }
+		if (input.size() < maxLen) { input += c; }
+	}
+
+	return input;
 }
 
 int main(void) {
@@ -263,12 +269,14 @@ int main(void) {
 						std::cout << "Do you wish to add another transaction? (y|n) >>> ";
 						std::cin >> opts;
 						
-						if (opts == 'y') { continue; }
+						if (opts == 'y') { 
+							printHeader();
+							continue; }
 					} else if (input == "n") {
 						printHeader();
 						break;
 					} else { 
-						std::cout << "Wrong option." << std::endl; 
+						std::cout << "Wrong option.\n"; 
 						continue;
 					}
 					break;
@@ -278,7 +286,7 @@ int main(void) {
 			case 2: {
 				printHeader();
 				pfs.displayTransactions();
-				std::cout << "Press Enter to continue... " << std::endl;
+				std::cout << "Press Enter to continue... \n";
 				std::cin.get(); std::cin.get();
 				break;
 			}
@@ -306,20 +314,44 @@ int main(void) {
 
 					switch (optn) {
 						case 1: { 
-							// update transaction 
+							// update date 
 							std::string date;
 							std::cout << "Enter new date >>> "; 
 							std::cin >> date;
 							if (isValidDate(date)) {
-								;;
+								pfs.updateDate(idOfTrans, date);
 							}
 							break;
 						}
-						case 2: {}
-						case 3: {}
-						case 4: {}
-						case 5: {}
-						default: {}
+						case 2: {
+							// Update Description
+							std::string newDesc;
+							std::cout << "Enter new description (char limit = 10) >>> "; 
+							std::cin >> newDesc;
+							pfs.updateDescription(idOfTrans, newDesc);
+							break;
+						}
+
+						case 3: {
+							// Update Category
+							std::string newCat;
+							std::cout << "Enter new category (char limit = 10) >>> "; 
+							std::cin >> newCat;
+							pfs.updateDescription(idOfTrans, newCat);
+							break;
+						}
+						case 4: {
+							// Update Amount
+							double newAmt;
+							std::cout << "Enter new amount >>> "; 
+							std::cin >> newAmt;
+							pfs.updateAmount(idOfTrans, newAmt);
+							break;
+						}
+						default: {
+							std::cout << "Wrong Option"; 
+							break;
+						}
 					}
 				}
 			}
@@ -354,9 +386,9 @@ int main(void) {
 				if (index != -1) { 
 					std::cout << "Id of " << id << " found, index #: "
 						<< index << std::endl; 
-				} else { std::cout << "Failed!!!" << std::endl; }
+				} else { std::cout << "Failed!!!\n"; }
 
-				std::cout << "Press Enter to continue... " << std::endl;
+				std::cout << "Press Enter to continue... \n";
 				std::cin.get();
 				std::cin.get();
 
