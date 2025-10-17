@@ -1,5 +1,6 @@
 #include <map>
 #include <ctime>
+#include <limits>
 #include <iomanip>
 #include <sstream>
 #include <string>
@@ -8,7 +9,8 @@
 #include <cstdlib> // for system
 #include <iostream>
 #include <algorithm> // for remove
-					 //
+
+// Prototypes for needed functions
 bool isValidDate(const std::string& date);
 std::string  safeInput(std::size_t maxLen, const std::string&);
 
@@ -73,7 +75,7 @@ class PersonalFinanceSystem {
 		int searchTransaction(const int id) { 
 			for (const auto& transaction : transactions) {
 				if (transaction.id == id) {
-					std::cout << "Id found and ready for updating\n";
+					std::cout << "\nId found and ready for updating\n";
 					std::cout << "Id\tDate\tDesc\tCategory\tAmount\n";
 					std::cout << transaction.id << "\t"; 
 					std::cout << transaction.date << "\t"; 
@@ -110,13 +112,11 @@ class PersonalFinanceSystem {
 		
 		void updateDescription(const int id, const std::string newDesc) { 
 			int i = findIndexById(id);
-			int maxLength = 10;
-			transactions[i].desc = safeInput(maxLength, newDesc);
+			transactions[i].desc = newDesc;
 		}
 		void updateCategory(const int id, const std::string newCategory) { 
 			int i = findIndexById(id);
-			int maxLength = 10;
-			transactions[i].cat = safeInput(maxLength, newCategory);
+			transactions[i].cat = newCategory;
 		}
 
 		void updateAmount(const int id, const double newAmt) { 
@@ -124,7 +124,13 @@ class PersonalFinanceSystem {
 			transactions[i].amt = newAmt;
 		}
 
-		void deleteTransaction() {
+		bool deleteTransactionById(int targetId) {
+			int index = findIndexById(targetId);
+			if (index != -1) {
+				transactions.erase(transactions.begin(), + index);
+				return true;
+			}
+			
 			std::cout << "Hello from deleteTransaction()\n";
 		}
 		void summaryReport() {
@@ -200,6 +206,7 @@ bool isValidDate(const std::string& date) {
 	return true;
 }
 std::string safeInput(std::size_t maxLen, const std::string& txt) {
+	// NOT WORKING
 
 	std::string input;
 	input.reserve(maxLen); // avoid reallocations
@@ -209,7 +216,12 @@ std::string safeInput(std::size_t maxLen, const std::string& txt) {
 		if (c == '\n') { break; }
 		if (input.size() < maxLen) { input += c; }
 	}
-
+	
+	// 
+	// Clear remaining characters
+	if (!std::cin.eof()) {
+		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+	}
 	return input;
 }
 
@@ -233,6 +245,7 @@ int main(void) {
 		std::cin >> option; 
 		switch (option) {
 			case 1: { 
+				printHeader();
 				while(1) {
 					int id = pfs.getLastId() + 1;
 					
@@ -286,7 +299,7 @@ int main(void) {
 			case 2: {
 				printHeader();
 				pfs.displayTransactions();
-				std::cout << "Press Enter to continue... \n";
+				std::cout << "\nPress Enter to continue... \n";
 				std::cin.get(); std::cin.get();
 				break;
 			}
@@ -298,11 +311,12 @@ int main(void) {
 				int idOfTrans = 0;
 				std::cout << "Enter Id of transaction: ";
 				std::cin >> idOfTrans;
+				std::cout << std::endl;
 
 				// If id found
 				if (pfs.searchTransaction(idOfTrans) == 1) { 
-					std::cout << "What do you want to change?"
-						<< "\t1-" << "Date\n"
+					std::cout << "\n\nWhat do you want to change?: "
+						<< "\n\t1-" << "Date\n"
 						<< "\t2-" << "Description\n"
 						<< "\t3-" << "Category\n"
 						<< "\t4-" << "Amount\n"
@@ -318,9 +332,15 @@ int main(void) {
 							std::string date;
 							std::cout << "Enter new date >>> "; 
 							std::cin >> date;
+
 							if (isValidDate(date)) {
 								pfs.updateDate(idOfTrans, date);
 							}
+
+							std::cout << "Date has been updated. \n\n";
+							std::cout << "Press Enter to continue... \n";
+							std::cin.get();
+							std::cin.get();
 							break;
 						}
 						case 2: {
@@ -328,7 +348,13 @@ int main(void) {
 							std::string newDesc;
 							std::cout << "Enter new description (char limit = 10) >>> "; 
 							std::cin >> newDesc;
+
 							pfs.updateDescription(idOfTrans, newDesc);
+
+							std::cout << "Description has been updated. \n\n";
+							std::cout << "Press Enter to continue... \n";
+							std::cin.get();
+							std::cin.get();
 							break;
 						}
 
@@ -337,15 +363,26 @@ int main(void) {
 							std::string newCat;
 							std::cout << "Enter new category (char limit = 10) >>> "; 
 							std::cin >> newCat;
-							pfs.updateDescription(idOfTrans, newCat);
+
+							pfs.updateCategory(idOfTrans, newCat);
+							std::cout << "Category has been updated. \n\n";
+							std::cout << "Press Enter to continue... \n";
+							std::cin.get();
+							std::cin.get();
 							break;
 						}
 						case 4: {
 							// Update Amount
+
 							double newAmt;
 							std::cout << "Enter new amount >>> "; 
 							std::cin >> newAmt;
 							pfs.updateAmount(idOfTrans, newAmt);
+
+							std::cout << "Category has been updated. \n\n";
+							std::cout << "Press Enter to continue... \n";
+							std::cin.get();
+							std::cin.get();
 							break;
 						}
 						default: {
@@ -358,8 +395,15 @@ int main(void) {
 
 			case 4: {
 				printHeader();
-				pfs.deleteTransaction();
-				std::cout << "You ordered to delete a transaction" << std::endl;
+				int idToDelete;
+				std::cout << "Enter id to delete: "; 
+				std::cin >> idToDelete;
+
+				pfs.deleteTransactionById(idToDelete);
+				std::cout << "Transaction has been deleted. \n\n";
+				std::cout << "Press Enter to continue... \n";
+				std::cin.get();
+				std::cin.get();
 				break;
 			}
 			case 5: {
