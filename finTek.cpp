@@ -1,26 +1,14 @@
 #include <map>
+#include <ctime>
+#include <iomanip>
+#include <sstream>
 #include <string>
 #include <vector>
-// #include <iomanip> // for setw
 #include <cstdlib> // for system
 #include <iostream>
 #include <algorithm> // for remove
 
-void printHeader() {
-	system("clear");
-	std::cout <<"\n" 
-			<< "########:'####:'##::: ##:'########:'########:'##:::'##::::::::::'##::::'##::::\n"
-			<< "##.....::. ##:: ###:: ##:... ##..:: ##.....:: ##::'##:::::::::::. ##:::. ##:::\n"
-			<< "##:::::::: ##:: ####: ##:::: ##:::: ##::::::: ##:'##:::::::::::::. ##:::. ##::\n"
-			<< "######:::: ##:: ## ## ##:::: ##:::: ######::: #####::::'#######:::. ##:::. ##:\n"
-			<< "##...::::: ##:: ##. ####:::: ##:::: ##...:::: ##. ##:::........::: ##:::: ##::\n"
-			<< "##:::::::: ##:: ##:. ###:::: ##:::: ##::::::: ##:. ##:::::::::::: ##:::: ##:::\n"
-			<< "##:::::::'####: ##::. ##:::: ##:::: ########: ##::. ##:::::::::: ##:::: ##::::\n"
-			<< "E..::::::::...::..::::..:::::..:::::.......Z:..::::..::::::::::..:::::..:::::W\n";
 
-	std::cout << "\nFinTek - Personal Finance System\n" << std::endl;
-
-}
 
 class PersonalFinanceSystem {
 	private:
@@ -95,31 +83,36 @@ class PersonalFinanceSystem {
 			}
 			return 0;
 		}
-		void updateTransaction(int id, int fieldToEdit, std::string date) {
-			for (const auto& transaction : transactions) {
+
+		void updateTransaction(const int id, const int fieldToEdit, 
+				const std::string date, std::string desc, std::string cat, double amt) {
+			// Pending Data validation
+			for (auto& transaction : transactions) {
 				if (transaction.id == id) {
 					switch(fieldToEdit) {
 						case 0: { 
-							std::cout << "Edit Date" << std::endl;
+							// Edit date - 
 							transaction.date = date;
 							break;
 						}
 						case 1: { 
-							std::cout << "Edit Description" << std::endl;
+							// Edit Description
+							transaction.desc = desc;
 							break;
 						}
 						case 2: { 
-							std::cout << "Edit Category" << std::endl;
+							// Edit Category
+							transaction.cat = cat;
 							break;
 						}
 						case 3: { 
-							std::cout << "Edit Amount" << std::endl;
+							// Edit Amount
+							transaction.amt = amt;
 							break;
 						}
 					}
 				}else { std::cout << "\nId not found." << std::endl; }
 			}
-			
 		}
 
 		void deleteTransaction() {
@@ -136,6 +129,32 @@ class PersonalFinanceSystem {
 			return transactions.back().id;
 		}
 };
+
+void printHeader() {
+	system("clear");
+	std::cout <<"\n" 
+	<< "########:'####:'##::: ##:'########:'########:'##:::'##::::::::::'##::::'##::::\n"
+	<< "##.....::. ##:: ###:: ##:... ##..:: ##.....:: ##::'##:::::::::::. ##:::. ##:::\n"
+	<< "##:::::::: ##:: ####: ##:::: ##:::: ##::::::: ##:'##:::::::::::::. ##:::. ##::\n"
+	<< "######:::: ##:: ## ## ##:::: ##:::: ######::: #####::::'#######:::. ##:::. ##:\n"
+	<< "##...::::: ##:: ##. ####:::: ##:::: ##...:::: ##. ##:::........::: ##:::: ##::\n"
+	<< "##:::::::: ##:: ##:. ###:::: ##:::: ##::::::: ##:. ##:::::::::::: ##:::: ##:::\n"
+	<< "##:::::::'####: ##::. ##:::: ##:::: ########: ##::. ##:::::::::: ##:::: ##::::\n"
+	<< "E..::::::::...::..::::..:::::..:::::.......Z:..::::..::::::::::..:::::..:::::W\n";
+
+	std::cout << "\nFinTek - Personal Finance System\n" << std::endl;
+
+}
+
+std::string getCurrentDate() {
+	std::time_t t = std::time(nullptr);
+	std::tm* now =std::localtime(&t);
+
+	std::ostringstream oss;
+	oss << std::put_time(now, "%Y-%m-%d");
+	
+	return oss.str();
+}
 
 int main(void) {
 
@@ -264,6 +283,16 @@ int main(void) {
 				std::cout << "\nThank you for using this application!, see you later." << std::endl;
 				exit(0);
 			}
+			case 7: {
+				printHeader();
+				std::cout << "\nYou have accessed the secret option! " << std::endl;
+				std::cout << "Today is: " << getCurrentDate() << std::endl;
+				std::cout << "Press Enter to continue... " << std::endl;
+				std::cin.get();
+				std::cin.get();
+				break;
+			}
+
 			default: {
 				std::cout << "Nevermind" << std::endl;
 				break;
