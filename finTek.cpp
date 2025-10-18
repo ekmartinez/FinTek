@@ -62,6 +62,7 @@ class PersonalFinanceSystem {
 			std::cout << "Data saved." << std::endl;
 		}
 		
+		// Use C
 		void displayTransactions() const {
 			for (const auto& transaction : transactions) {
 				std::cout << transaction.id << "\t"; 
@@ -86,7 +87,7 @@ class PersonalFinanceSystem {
 
 					return 1;
 
-					} else { std::cout << "\nId not found." << std::endl; }
+					} else { std::cout << "\nId not found.\n"; }
 			}
 			return 0;
 		}
@@ -125,18 +126,20 @@ class PersonalFinanceSystem {
 			transactions[i].amt = newAmt;
 		}
 
-		/*
-		bool deleteTransactionById(int targetId) {
-			int index = findIndexById(targetId);
-			if (index != -1) {
-				transactions.erase(transactions.begin(), index);
-				return true;
+		int deleteTransactionById(int targetId) {
+			auto it = std::remove_if(transactions.begin(), transactions.end(), 
+					[targetId](const Transactions& t) { return t.id == targetId; });
+
+			if (it != transactions.end()) {
+				transactions.erase(it, transactions.end());
+				std::cout << "Transaction with ID " << targetId << " deleted.\n";
+				return 1;
 			}
-			
-			std::cout << "Hello from deleteTransaction()\n";
+
+			return -1;
+
 		}
-		*/
-		
+
 		void summaryReport() {
 			std::cout << "Hello from summaryReport()\n";
 		}
@@ -269,7 +272,7 @@ int main(void) {
 					std::cout << "Enter transaction's amount: ";
 					std::cin >> amount;
 
-					std::cout << "\nData Entered and ready to be saved: \n"
+					std::cout << "\nData Entered and ready to be saved:\n\n"
 								<< "Id: " << id << std::endl
 								<< "Date: "<< date << std::endl
 								<< "Description: " << description << std::endl
@@ -404,18 +407,21 @@ int main(void) {
 				std::cin >> idToDelete;
 
 				std::cout << "You've chosen to delete id" 
-							<< idToDelete << ": " << std::endl;
+							<< idToDelete << ": \n";
 
 				pfs.searchTransaction(idToDelete);
 
-				std::cout << "\n\nAre you sure?: ";
+				std::cout << "\n\nAre you sure? (y|n): ";
 
 				char c;
 				std::cin >> c;
 
 				if (c == 'y') { 
-					pfs.deleteTransactionById(idToDelete); 
-					std::cout << "\nTransaction has been deleted. \n\n";
+					
+					int d = pfs.deleteTransactionById(idToDelete); 
+					if (d != -1) {
+						std::cout << "\nTransaction has been deleted. \n\n";
+					} else { std::cout << "\nThere was a problem. \n\n";} 
 				} else { std::cout << "Nevermind.\n"; }
 
 				std::cout << "Press Enter to continue... \n";

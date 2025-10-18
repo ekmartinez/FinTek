@@ -3,9 +3,12 @@
 💼 C++ Practice Project: Personal Finance & Budget Tracker
 🎯 Problem Statement
 
-Create a Personal Finance Tracker in C++ that helps an individual (or client) manage their income and expenses, track spending categories, and calculate savings or net cash flow.
+Create a Personal Finance Tracker in C++ that helps an individual (or client) 
+manage their income and expenses, track spending categories, and calculate savings 
+or net cash flow.
 
 🧩 Features & Requirements
+
 1. Add Transaction
 
 Allow the user to record a new financial transaction.
