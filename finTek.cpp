@@ -62,7 +62,6 @@ class PersonalFinanceSystem {
 			std::cout << "Data saved." << std::endl;
 		}
 
-		// Using C (printf()) resulted in better table appeareance
 		void displayTransactions() const {
 
 			// Header
@@ -75,24 +74,24 @@ class PersonalFinanceSystem {
 						t.id, t.date.c_str(), t.desc.c_str(), t.cat.c_str(), t.amt);
 			}
 		}
-	
-		int searchTransaction(const int id) { 
-			for (const auto& transaction : transactions) {
-				if (transaction.id == id) {
-					std::cout << "\nId found and ready for updating\n";
-					std::cout << "Id\tDate\tDesc\tCategory\tAmount\n";
-					std::cout << transaction.id << "\t"; 
-					std::cout << transaction.date << "\t"; 
-					std::cout << transaction.desc << "\t"; 
-					std::cout << transaction.cat << "\t"; 
-					std::cout << transaction.amt << "\t"; 
 
-					return 1;
+		 int searchTransaction(const int id) { 
+		 	for (const auto& transaction : transactions) {
+		 		if (transaction.id == id) {
+		 			std::cout << "\nId found and ready for updating\n";
+		 			std::cout << "Id\tDate\tDesc\tCategory\tAmount\n";
+		 			std::cout << transaction.id << "\t"; 
+		 			std::cout << transaction.date << "\t"; 
+		 			std::cout << transaction.desc << "\t"; 
+		 			std::cout << transaction.cat << "\t"; 
+		 			std::cout << transaction.amt << "\t"; 
 
-					} else { std::cout << "\nId not found.\n"; }
-			}
-			return 0;
-		}
+		 			return 1;
+
+		 			} else { std::cout << "\nId not found.\n"; }
+		 	}
+		 	return 0;
+		 }
 
 		int findIndexById(int targetId) {
 
@@ -445,7 +444,15 @@ int main(void) {
 			case 7: {
 				printHeader();
 				std::cout << "\nYou have accessed the secret Location!\n\n";
-				std::cout << "Press Enter to continue... \n";
+
+				int id = 0;
+				std::cout << "Search By Id\n" << "------------\n";
+				std::cout << "\nEnter Id >> ";
+				std::cin >> id;
+
+				pfs.searchTransaction((int)id);
+
+				std::cout << "\n\nPress Enter to continue... \n";
 				std::cin.get();
 				std::cin.get();
 				break;
