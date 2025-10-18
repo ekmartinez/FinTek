@@ -15,6 +15,7 @@ bool isValidDate(const std::string& date);
 std::string  safeInput(std::size_t maxLen, const std::string&);
 
 class PersonalFinanceSystem {
+	/* Personal Ledger */
 	private:
 		
 		std::vector<std::string> category;
@@ -124,15 +125,18 @@ class PersonalFinanceSystem {
 			transactions[i].amt = newAmt;
 		}
 
+		/*
 		bool deleteTransactionById(int targetId) {
 			int index = findIndexById(targetId);
 			if (index != -1) {
-				transactions.erase(transactions.begin(), + index);
+				transactions.erase(transactions.begin(), index);
 				return true;
 			}
 			
 			std::cout << "Hello from deleteTransaction()\n";
 		}
+		*/
+		
 		void summaryReport() {
 			std::cout << "Hello from summaryReport()\n";
 		}
@@ -399,8 +403,21 @@ int main(void) {
 				std::cout << "Enter id to delete: "; 
 				std::cin >> idToDelete;
 
-				pfs.deleteTransactionById(idToDelete);
-				std::cout << "Transaction has been deleted. \n\n";
+				std::cout << "You've chosen to delete id" 
+							<< idToDelete << ": " << std::endl;
+
+				pfs.searchTransaction(idToDelete);
+
+				std::cout << "\n\nAre you sure?: ";
+
+				char c;
+				std::cin >> c;
+
+				if (c == 'y') { 
+					pfs.deleteTransactionById(idToDelete); 
+					std::cout << "\nTransaction has been deleted. \n\n";
+				} else { std::cout << "Nevermind.\n"; }
+
 				std::cout << "Press Enter to continue... \n";
 				std::cin.get();
 				std::cin.get();
@@ -409,7 +426,7 @@ int main(void) {
 			case 5: {
 				printHeader();
 				pfs.summaryReport();
-				std::cout << "You ordered a summary report" << std::endl;
+				std::cout << "You ordered a summary report\n";
 				break;
 			}
 			case 6: {
@@ -420,27 +437,14 @@ int main(void) {
 			case 7: {
 				printHeader();
 				std::cout << "\nYou have accessed the secret Location!\n\n";
-
-				std::cout << "Enter id to find index: ";
-
-				int id;
-				std::cin >> id;
-				int index = pfs.findIndexById((int) id);
-
-				if (index != -1) { 
-					std::cout << "Id of " << id << " found, index #: "
-						<< index << std::endl; 
-				} else { std::cout << "Failed!!!\n"; }
-
 				std::cout << "Press Enter to continue... \n";
 				std::cin.get();
 				std::cin.get();
-
 				break;
 			}
 
 			default: {
-				std::cout << "Nevermind." << std::endl;
+				std::cout << "Nevermind.\n";
 				break;
 			}
 		}
