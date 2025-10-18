@@ -61,19 +61,21 @@ class PersonalFinanceSystem {
 
 			std::cout << "Data saved." << std::endl;
 		}
-		
-		// Use C
+
+		// Using C (printf()) resulted in better table appeareance
 		void displayTransactions() const {
-			for (const auto& transaction : transactions) {
-				std::cout << transaction.id << "\t"; 
-				std::cout << transaction.date << "\t"; 
-				std::cout << transaction.desc << "\t"; 
-				std::cout << transaction.cat << "\t"; 
-				std::cout << transaction.amt << "\t"; 
-				std::cout << "\n";
+
+			// Header
+			printf("%-8s %-12s %-25s %-15s %-10s",
+					"Id", "Date", "Description", "Category", "Amount");
+
+			// Lines
+			for (const auto& t : transactions) {
+				printf("\n%-8d %-12s %-25s %-15s %-10.2f", 
+						t.id, t.date.c_str(), t.desc.c_str(), t.cat.c_str(), t.amt);
 			}
 		}
-
+	
 		int searchTransaction(const int id) { 
 			for (const auto& transaction : transactions) {
 				if (transaction.id == id) {
@@ -306,7 +308,7 @@ int main(void) {
 			case 2: {
 				printHeader();
 				pfs.displayTransactions();
-				std::cout << "\nPress Enter to continue... \n";
+				std::cout << "\n\nPress Enter to continue... \n";
 				std::cin.get(); std::cin.get();
 				break;
 			}
