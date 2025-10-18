@@ -9,6 +9,7 @@
 #include <cstdlib> // for system
 #include <iostream>
 #include <algorithm> // for remove
+#include "csvOperations.h"
 
 // Prototypes for needed functions
 bool isValidDate(const std::string& date);
@@ -180,7 +181,7 @@ std::string getCurrentDate() {
 }
 
 int daysInMonth(int year, int month) {
-	static const int baseDays[] = {31,28,31,30,31,30,31,31,30,31,30,31};
+	static const int baseDays[] = { 31,28,31,30,31,30,31,31,30,31,30,31 };
 
 	if (month < 1 || month > 12) { return 0; }
 
@@ -190,7 +191,7 @@ int daysInMonth(int year, int month) {
 		bool isLeap = (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
 		if (month == 2 && isLeap) { days = 29; }
 		
-		return days;
+		return days; 
 }
 
 // Validate date string in "YYYY-MM-DD"
@@ -445,12 +446,11 @@ int main(void) {
 				printHeader();
 				std::cout << "\nYou have accessed the secret Location!\n\n";
 
-				int id = 0;
-				std::cout << "Search By Id\n" << "------------\n";
-				std::cout << "\nEnter Id >> ";
-				std::cin >> id;
-
-				pfs.searchTransaction((int)id);
+				int id_ = 0;
+				std::cout << "\nEnter id:\n";
+				std::cin >> id_;
+				readRecord(id_);
+				updateRecord(id_);
 
 				std::cout << "\n\nPress Enter to continue... \n";
 				std::cin.get();
@@ -477,4 +477,12 @@ std::cout << "Press Enter to continue... " <<< std::endl;
 std::cin.get();
 std::cin.get();
 */
+
+// int id = 0;
+				// std::cout << "Search By Id\n" << "------------\n";
+				// std::cout << "\nEnter Id >> ";
+				// std::cin >> id;
+
+				// pfs.searchTransaction((int)id);
+
 
