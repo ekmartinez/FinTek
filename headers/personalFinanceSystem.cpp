@@ -24,7 +24,7 @@ void PersonalFinanceSystem::updateCategory(const int id, const std::string newCa
 }
 
 void PersonalFinanceSystem::addTransaction(int id, const std::string& date, 
-		const std::string& desc, const std::string& cat, const double amt) {
+	const std::string& desc, const std::string& cat, const double amt) {
 
 	Transactions newTransaction = {id, date, desc, cat, amt};
 	transactions.push_back(newTransaction);
@@ -32,34 +32,31 @@ void PersonalFinanceSystem::addTransaction(int id, const std::string& date,
 	
  }
 
-void PersonalFinanceSystem::displayTransactions() {
+int PersonalFinanceSystem::searchTransaction(const int id = 0) {
+	// C prints better tables 
+
+	// Prints ledger from object (std::vector<struct>)
 
 	// Header
 	printf("%-8s %-12s %-25s %-15s %-10s",
 			"Id", "Date", "Description", "Category", "Amount");
 
-	// Lines
-	for (const auto& t : transactions) {
-		printf("\n%-8d %-12s %-25s %-15s %-10.2f",
-			t.id, t.date.c_str(), t.desc.c_str(), t.cat.c_str(), t.amt);
+	if (id == 0) { 
+		// If Id 0 print all for menu 2 - Display Transactions 
+		for (const auto& ts : transactions) {
+			printf("\n%-8d %-12s %-25s %-15s %-10.2f",
+				ts.id, ts.date.c_str(), ts.desc.c_str(), ts.cat.c_str(), ts.amt);
+		} 			
+	} else {
+		// Else prints transaction by id. 
+		for (const auto& ts : transactions) {
+			if (int(id) == ts.id) {
+				printf("\n%-8d %-12s %-25s %-15s %-10.2f",
+					ts.id, ts.date.c_str(), ts.desc.c_str(), ts.cat.c_str(), ts.amt);
+			}
+		}
 	}
-}
 
-int PersonalFinanceSystem::searchTransaction(const int id) {
-	for (const auto& transaction : transactions) {
-		if (transaction.id == id) {
-			std::cout << "\nId found and ready for updating\n";
-			std::cout << "Id\tDate\tDesc\tCategory\tAmount\n";
-			std::cout << transaction.id << "\t";
-			std::cout << transaction.date << "\t";
-			std::cout << transaction.desc << "\t";
-			std::cout << transaction.cat << "\t";
-			std::cout << transaction.amt << "\t";
-
-			return 1;
-
-		} else { std::cout << "\nId not found.\n"; }
-	}
 	return 0;
 }
 
