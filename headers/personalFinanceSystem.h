@@ -9,14 +9,15 @@ class PersonalFinanceSystem {
 		std::vector<std::string> category;
 
 		struct Transactions {
-				int id;
-				std::string date;
-				std::string desc;
-				std::string cat;
-				double amt;
+			int id;
+			std::string date;
+			std::string desc;
+			std::string cat;
+			double amt;
 		};
 
 		std::vector<Transactions> transactions;
+		std::string csvFilePath;
 
 	public:
 		void addCategory(const std::string& str);
