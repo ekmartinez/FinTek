@@ -2,7 +2,6 @@
 #include <iostream>
 					 
 #include "headers/helpers.h"
-#include "headers/csvOperations.h"
 #include "headers/personalFinanceSystem.h"
 
 int main(void) {

@@ -3,9 +3,12 @@
 #include <iostream>
 #include <algorithm>
 #include <iomanip>
+#include <fstream>
 
 #include "helpers.h"
 #include "personalFinanceSystem.h"
+
+std::string PersonalFinanceSystem::csvFilePath = "./storage/ledger.csv";
 
 void PersonalFinanceSystem::addCategory(const std::string& str) {
 	category.push_back(str);
@@ -20,16 +23,24 @@ void PersonalFinanceSystem::displayCategories() {
 }
 
 void PersonalFinanceSystem::updateCategory(const int id, const std::string newCategory) {
-	std::cout << "Hello from updateCategory()\n";	
+	std::cout << "Hello from updateCategory()\n" << id << " " << newCategory << " " << std::endl;
 }
 
-void PersonalFinanceSystem::addTransaction(int id, const std::string& date, 
+void PersonalFinanceSystem::AddToCsv(const int id, const std::string date, const std::string desc, const std::string cat, double amt) {
+
+    std::fstream fout;
+    fout.open(csvFilePath, std::ios::out | std::ios::app);
+    fout << id << ", " << date << ", " << desc << ", " << cat << ", " << amt << std::endl;
+
+}
+
+void PersonalFinanceSystem::addTransaction(int id, const std::string& date,
 	const std::string& desc, const std::string& cat, const double amt) {
 
 	Transactions newTransaction = {id, date, desc, cat, amt};
 	transactions.push_back(newTransaction);
+    AddToCsv(id, date, desc, cat, amt);
 	std::cout << "Data saved.;";
-	
  }
 
 int PersonalFinanceSystem::searchTransaction(const int id = 0) {
