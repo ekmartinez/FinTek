@@ -1,4 +1,5 @@
 #include <string>
+#include <cerrno>
 #include <vector>
 #include <iostream>
 #include <algorithm>
@@ -32,6 +33,78 @@ void PersonalFinanceSystem::AddToCsv(const int id, const std::string date, const
     fout.open(csvFilePath, std::ios::out | std::ios::app);
     fout << id << ", " << date << ", " << desc << ", " << cat << ", " << amt << std::endl;
 
+}
+
+void PersonalFinanceSystem::loadFromCsv() {
+    transactions.clear();
+
+    std::ifstream file("storage/ledger.csv");
+    if (!file.is_open()) {
+        std::cerr << "loadFromCsv: ERROR — could not open file \"storage/ledger.csv\". errno=" << errno << '\n';
+        return;
+    }
+
+    auto trim_cr = [](std::string &s) {
+        if (!s.empty() && s.back() == '\r') s.pop_back();
+        // optionally trim BOM at start
+        if (s.size() >= 3 && (unsigned char)s[0] == 0xEF && (unsigned char)s[1] == 0xBB && (unsigned char)s[2] == 0xBF) {
+            s.erase(0, 3);
+        }
+    };
+
+    std::string line;
+    // Read header (if there is one) and show it
+    if (!std::getline(file, line)) {
+        std::cerr << "loadFromCsv: file is empty\n";
+        return;
+    }
+    trim_cr(line);
+    std::cerr << "loadFromCsv: header: \"" << line << "\"\n";
+
+    int lineno = 1;
+    while (std::getline(file, line)) {
+        ++lineno;
+        trim_cr(line);
+        if (line.empty()) {
+            std::cerr << "loadFromCsv: skipping empty line " << lineno << '\n';
+            continue;
+        }
+
+        std::istringstream iss(line);
+        std::string id_str, amt_str;
+        Transactions t;                // use a short local name, not 'transactions'
+
+        // id
+        if (!std::getline(iss, id_str, ',')) {
+            std::cerr << "loadFromCsv: malformed line " << lineno << " (missing id): \"" << line << "\"\n";
+            continue;
+        }
+        try {
+            t.id = std::stoi(id_str);
+        } catch (const std::exception &e) {
+            std::cerr << "loadFromCsv: stoi failed on line " << lineno << " id=\"" << id_str << "\" -> " << e.what() << '\n';
+            continue;
+        }
+
+        // date, desc, cat (these may be empty)
+        if (!std::getline(iss, t.date, ',')) t.date.clear();
+        if (!std::getline(iss, t.desc, ',')) t.desc.clear();
+        if (!std::getline(iss, t.cat, ',')) t.cat.clear();
+
+        // amount
+        if (!std::getline(iss, amt_str, ',')) amt_str.clear();
+        try {
+            t.amt = amt_str.empty() ? 0.0 : std::stod(amt_str);
+        } catch (const std::exception &e) {
+            std::cerr << "loadFromCsv: stod failed on line " << lineno << " amt=\"" << amt_str << "\" -> " << e.what() << '\n';
+            t.amt = 0.0; // fallback
+        }
+
+        transactions.push_back(std::move(t));
+        std::cerr << "loadFromCsv: loaded line " << lineno << " id=" << transactions.back().id << '\n';
+    }
+
+    std::cerr << "loadFromCsv: finished. total loaded = " << transactions.size() << '\n';
 }
 
 void PersonalFinanceSystem::addTransaction(int id, const std::string& date,

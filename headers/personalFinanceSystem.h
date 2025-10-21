@@ -35,6 +35,7 @@ class PersonalFinanceSystem {
 		void summaryReport();
 		int getLastId();
         void AddToCsv(const int id, const std::string date, const std::string desc, const std::string cat, double amt);
+        void loadFromCsv();
 };
 
 #endif

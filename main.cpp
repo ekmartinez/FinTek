@@ -8,6 +8,8 @@ int main(void) {
 
 	PersonalFinanceSystem pfs;
 
+    pfs.loadFromCsv();
+
 	while(1) {
 		printHeader();
 		int option = 0;	
