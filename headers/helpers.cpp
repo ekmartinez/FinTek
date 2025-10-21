@@ -25,8 +25,6 @@ void printHeader() {
 
 void cPrintsBetterTables(const int id, const std::string dt, const std::string desc, const std::string cat, const double amt)
 {
-	printf("%-8s %-12s %-25s %-15s %-10s",
-		"Id", "Date", "Description", "Category", "Amount");
 
 	printf("\n%-8d %-12s %-25s %-15s %-10.2f",
 		id, dt.c_str(), desc.c_str(), cat.c_str(), amt);

@@ -117,32 +117,55 @@ void PersonalFinanceSystem::addTransaction(int id, const std::string& date,
  }
 
 int PersonalFinanceSystem::searchTransaction(const int id = 0) {
-	// C prints better tables 
 
-	// Prints ledger from object (std::vector<struct>)
+    // Header
+    printf("%-8s %-12s %-25s %-15s %-10s",
+            "Id", "Date", "Description", "Category", "Amount");
 
-	// Header
-	printf("%-8s %-12s %-25s %-15s %-10s",
-			"Id", "Date", "Description", "Category", "Amount");
-
-	if (id == 0) { 
-		// If Id 0 print all for menu 2 - Display Transactions 
+	if (id == 0) {
+		// If Id 0 print all for menu 2 - Display Transactions
 		for (const auto& ts : transactions) {
-			printf("\n%-8d %-12s %-25s %-15s %-10.2f",
-				ts.id, ts.date.c_str(), ts.desc.c_str(), ts.cat.c_str(), ts.amt);
-		} 			
+            cPrintsBetterTables(ts.id, ts.date, ts.desc, ts.cat, ts.amt);
+		}
 	} else {
-		// Else prints transaction by id. 
+		// Else prints transaction by id.
 		for (const auto& ts : transactions) {
 			if (int(id) == ts.id) {
-				printf("\n%-8d %-12s %-25s %-15s %-10.2f",
-					ts.id, ts.date.c_str(), ts.desc.c_str(), ts.cat.c_str(), ts.amt);
+                cPrintsBetterTables(ts.id, ts.date, ts.desc, ts.cat, ts.amt);
 			}
 		}
 	}
 
 	return 0;
 }
+
+// int PersonalFinanceSystem::searchTransaction(const int id = 0) {
+// 	// C prints better tables
+//
+// 	// Prints ledger from object (std::vector<struct>)
+//
+// 	// Header
+// 	printf("%-8s %-12s %-25s %-15s %-10s",
+// 			"Id", "Date", "Description", "Category", "Amount");
+//
+// 	if (id == 0) {
+// 		// If Id 0 print all for menu 2 - Display Transactions
+// 		for (const auto& ts : transactions) {
+// 			printf("\n%-8d %-12s %-25s %-15s %-10.2f",
+// 				ts.id, ts.date.c_str(), ts.desc.c_str(), ts.cat.c_str(), ts.amt);
+// 		}
+// 	} else {
+// 		// Else prints transaction by id.
+// 		for (const auto& ts : transactions) {
+// 			if (int(id) == ts.id) {
+// 				printf("\n%-8d %-12s %-25s %-15s %-10.2f",
+// 					ts.id, ts.date.c_str(), ts.desc.c_str(), ts.cat.c_str(), ts.amt);
+// 			}
+// 		}
+// 	}
+//
+// 	return 0;
+// }
 
 int PersonalFinanceSystem::findIndexById(int targetId) {
 
