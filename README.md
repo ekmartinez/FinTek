@@ -1,9 +1,10 @@
 # FinTech
 
-C++ practice problem.
+Personal Finance Tracker.
 
 ``` c++
 /*
+
 ########:'####:'##::: ##:'########:'########:'##:::'##::::::::::'##::::'##::::
 ##.....::. ##:: ###:: ##:... ##..:: ##.....:: ##::'##:::::::::::. ##:::. ##:::
 ##:::::::: ##:: ####: ##:::: ##:::: ##::::::: ##:'##:::::::::::::. ##:::. ##::
@@ -13,17 +14,19 @@ C++ practice problem.
 ##:::::::'####: ##::. ##:::: ##:::: ########: ##::. ##:::::::::: ##:::: ##::::
 E..::::::::...::..::::..:::::..:::::.......Z:..::::..::::::::::..:::::..:::::W
 
-
 FinTek - Personal Finance System
----------------------------------
-    1. Add Transaction
-    2. Display Transactions
-    3. Update Transaction
-    4. Delete Transaction
-    5. Summary Report
-    6. Exit
+
+Ledger Balance: $57.03
+
+Welcome to the Personal Finance Tracker!
+---------------------------------------
+	1. Add Transaction
+	2. Display Transactions
+	3. Update Transaction
+	4. Delete Transaction
+	5. Summary Report
+	6. Exit
 
 Choose an option:
-
 */
 ```

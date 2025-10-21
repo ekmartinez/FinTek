@@ -11,7 +11,9 @@ int main(void) {
     pfs.loadFromCsv();
 
 	while(1) {
+
 		printHeader();
+        std::cout << "Ledger Balance: $" << pfs.getBalance() << std::endl;
 		int option = 0;	
 		std::cout << "\nWelcome to the Personal Finance Tracker!\n" 
 			<< "---------------------------------------\n" 
@@ -23,7 +25,9 @@ int main(void) {
 			<< "\t6. Exit\n"
 			<< "\nChoose an option: ";
 
-		std::cin >> option; 
+		std::cin >> option;
+
+
 		switch (option) {
 			case 1: { 
 				printHeader();
@@ -222,17 +226,10 @@ int main(void) {
 				printHeader();
 				std::cout << "\nYou have accessed the secret Location!\n\n";
 
-				int id_ = 0;
+                std::cout << "\nLedger Balance: " << pfs.getBalance() << std::endl;
 
-				while(id_ != -1) {
-					std::cout << "\nEnter id: ";
-					std::cin >> id_;
-					pfs.searchTransaction(id_);
-				}
-				
-				std::cout << "\n\nExiting...\nPress Enter to continue... \n";
-				std::cin.get();
-				std::cin.get();
+                std::cout << "Press Enter to continue... " << std::endl;
+                std::cin.get(); std::cin.get();
 				break;
 			}
 
@@ -241,10 +238,26 @@ int main(void) {
 				break;
 			}
 		}
+
 	}
 	return 0;
+
+
+
 }
 // std::cout << "Press Enter to continue... " <<< std::endl;
 // // std::cin.get();
 // // std::cin.get();
 
+   /*
+				int id_ = 0;
+
+				while(id_ != -1) {
+					std::cout << "\nEnter id: ";
+					std::cin >> id_;
+					pfs.searchTransaction(id_);
+				}
+
+				std::cout << "\n\nExiting...\nPress Enter to continue... \n";
+				std::cin.get();
+				std::cin.get();*/

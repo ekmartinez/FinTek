@@ -5,9 +5,11 @@
 #include <iostream>
 
 #include "helpers.h"
+#include "personalFinanceSystem.h"
 
 void printHeader() {
 	system("clear");
+    PersonalFinanceSystem pfs;
 
 	std::cout <<"\n"
 	<< "########:'####:'##::: ##:'########:'########:'##:::'##::::::::::'##::::'##::::\n"
@@ -31,7 +33,8 @@ void cPrintsBetterTables(const int id, const std::string dt, const std::string d
 
 }
 
-std::string getCurrentDate() {
+std::string getCurrentDate()
+{
 	std::time_t t = std::time(nullptr);
 	std::tm* now = std::localtime(&t);
 
@@ -41,7 +44,8 @@ std::string getCurrentDate() {
 	return oss.str();
 }
 
-int daysInMonth(int year, int month) {
+int daysInMonth(int year, int month)
+{
 	static const int baseDays[] = { 31,28,31,30,31,30,31,31,30,31,30,31 };
 
 	if (month < 1 || month > 12) { return 0; }
@@ -56,7 +60,8 @@ int daysInMonth(int year, int month) {
 }
 
 // Validate date string in "YYYY-MM-DD"
-bool isValidDate(const std::string& date) {
+bool isValidDate(const std::string &date)
+{
 	static const std::regex pattern(R"(^(\d{4})-(\d{2})-(\d{2}))");
 	std::smatch match;
 

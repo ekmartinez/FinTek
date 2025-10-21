@@ -7,6 +7,7 @@
 class PersonalFinanceSystem {
 	private:
 		std::vector<std::string> category;
+        double balance;
 
 		struct Transactions {
 			int id;
@@ -38,6 +39,7 @@ class PersonalFinanceSystem {
         void AddToCsv(const int id, const std::string date, const std::string desc, const std::string cat, double amt);
         void loadFromCsv();
         void updateCsv();
+        double getBalance();
 };
 
 #endif

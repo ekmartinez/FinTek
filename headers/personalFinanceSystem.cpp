@@ -12,6 +12,7 @@
 #include "helpers.h"
 #include "personalFinanceSystem.h"
 
+double balance = 0.00;
 
 std::string PersonalFinanceSystem::csvFilePath = "./storage/ledger.csv";
 std::string PersonalFinanceSystem::csvTempPath = "./storage/ledger.tmp";
@@ -221,7 +222,13 @@ void PersonalFinanceSystem::summaryReport() {
 }
 
 int PersonalFinanceSystem::getLastId() {
-  if (transactions.empty()) { 
-	  return 0; 
+    if (transactions.empty()) {
+        return 0;
 	} else { return transactions.back().id; }
+}
+
+double PersonalFinanceSystem::getBalance() {
+    balance = 0;
+    for (auto &t : transactions) { balance += t.amt; }
+    return balance ;
 }
