@@ -1,3 +1,3 @@
-g++ main.cpp headers/csvOperations.cpp headers/helpers.cpp headers/personalFinanceSystem.cpp -o output
+g++ main.cpp headers/helpers.cpp headers/personalFinanceSystem.cpp -o output
 ./output
 

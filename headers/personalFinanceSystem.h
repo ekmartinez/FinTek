@@ -7,16 +7,19 @@
 class PersonalFinanceSystem {
 	private:
 		std::vector<std::string> category;
+        double balance;
 
 		struct Transactions {
-				int id;
-				std::string date;
-				std::string desc;
-				std::string cat;
-				double amt;
+			int id;
+			std::string date;
+			std::string desc;
+			std::string cat;
+			double amt;
 		};
 
 		std::vector<Transactions> transactions;
+		static std::string csvFilePath;
+		static std::string csvTempPath;
 
 	public:
 		void addCategory(const std::string& str);
@@ -33,6 +36,10 @@ class PersonalFinanceSystem {
 		int deleteTransactionById(int targetId);
 		void summaryReport();
 		int getLastId();
+        void AddToCsv(const int id, const std::string date, const std::string desc, const std::string cat, double amt);
+        void loadFromCsv();
+        void updateCsv();
+        double getBalance();
 };
 
 #endif

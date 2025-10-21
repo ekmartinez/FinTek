@@ -23,7 +23,16 @@ void printHeader() {
 
 }
 
-std::string getCurrentDate() {
+void cPrintsBetterTables(const int id, const std::string dt, const std::string desc, const std::string cat, const double amt)
+{
+
+	printf("\n%-8d %-12s %-25s %-15s %-10.2f",
+		id, dt.c_str(), desc.c_str(), cat.c_str(), amt);
+
+}
+
+std::string getCurrentDate()
+{
 	std::time_t t = std::time(nullptr);
 	std::tm* now = std::localtime(&t);
 
@@ -33,8 +42,8 @@ std::string getCurrentDate() {
 	return oss.str();
 }
 
-
-int daysInMonth(int year, int month) {
+int daysInMonth(int year, int month)
+{
 	static const int baseDays[] = { 31,28,31,30,31,30,31,31,30,31,30,31 };
 
 	if (month < 1 || month > 12) { return 0; }
@@ -49,7 +58,8 @@ int daysInMonth(int year, int month) {
 }
 
 // Validate date string in "YYYY-MM-DD"
-bool isValidDate(const std::string& date) {
+bool isValidDate(const std::string &date)
+{
 	static const std::regex pattern(R"(^(\d{4})-(\d{2})-(\d{2}))");
 	std::smatch match;
 

@@ -2,15 +2,18 @@
 #include <iostream>
 					 
 #include "headers/helpers.h"
-#include "headers/csvOperations.h"
 #include "headers/personalFinanceSystem.h"
 
 int main(void) {
 
 	PersonalFinanceSystem pfs;
 
+    pfs.loadFromCsv();
+
 	while(1) {
+
 		printHeader();
+        std::cout << "Ledger Balance: $" << pfs.getBalance() << std::endl;
 		int option = 0;	
 		std::cout << "\nWelcome to the Personal Finance Tracker!\n" 
 			<< "---------------------------------------\n" 
@@ -22,7 +25,9 @@ int main(void) {
 			<< "\t6. Exit\n"
 			<< "\nChoose an option: ";
 
-		std::cin >> option; 
+		std::cin >> option;
+
+
 		switch (option) {
 			case 1: { 
 				printHeader();
@@ -58,6 +63,7 @@ int main(void) {
 										
 					if (input == "y") {
 						pfs.addTransaction(id, date, description, cat, amount);
+                        pfs.updateCsv();
 						char opts;
 						std::cout << "\nDo you wish to add another transaction? (y|n) >>> ";
 						std::cin >> opts;
@@ -78,7 +84,7 @@ int main(void) {
 			}
 			case 2: {
 				printHeader();
-				pfs.displayTransactions();
+				pfs.searchTransaction(0);
 				std::cout << "\n\nPress Enter to continue... \n";
 				std::cin.get(); std::cin.get();
 				break;
@@ -88,20 +94,20 @@ int main(void) {
 
 				printHeader();
 				// Search for Id of transaction
-				int idOfTrans = 0;
+				int id = 0;
 				std::cout << "Enter Id of transaction: ";
-				std::cin >> idOfTrans;
+				std::cin >> id;
 				std::cout << std::endl;
 
 				// If id found
-				if (pfs.searchTransaction(idOfTrans) == 1) { 
-					std::cout << "\n\nWhat do you want to change?: "
-						<< "\n\t1-" << "Date\n"
-						<< "\t2-" << "Description\n"
-						<< "\t3-" << "Category\n"
-						<< "\t4-" << "Amount\n"
-						<< "Choose an option: " 
-						<< std::endl;
+				if (pfs.findIndexById(id == 1)) { 
+					std::cout << "\n\nWhat do you want to update?: "
+					<< "\n\t1-" << "Date\n"
+					<< "\t2-" << "Description\n"
+					<< "\t3-" << "Category\n"
+					<< "\t4-" << "Amount\n"
+					<< "Choose an option: " 
+					<< std::endl;
 
 					int optn = 0;
 					std::cin >> optn;
@@ -114,7 +120,7 @@ int main(void) {
 							std::cin >> date;
 
 							if (isValidDate(date)) {
-								pfs.updateDate(idOfTrans, date);
+								pfs.updateDate(id, date);
 							}
 
 							std::cout << "Date has been updated. \n\n";
@@ -129,7 +135,7 @@ int main(void) {
 							std::cout << "Enter new description (char limit = 10) >>> "; 
 							std::cin >> newDesc;
 
-							pfs.updateDescription(idOfTrans, newDesc);
+							pfs.updateDescription(id, newDesc);
 
 							std::cout << "Description has been updated. \n\n";
 							std::cout << "Press Enter to continue... \n";
@@ -144,7 +150,7 @@ int main(void) {
 							std::cout << "Enter new category (char limit = 10) >>> "; 
 							std::cin >> newCat;
 
-							pfs.updateCategory(idOfTrans, newCat);
+							pfs.updateCategory(id, newCat);
 							std::cout << "Category has been updated. \n\n";
 							std::cout << "Press Enter to continue... \n";
 							std::cin.get();
@@ -157,7 +163,7 @@ int main(void) {
 							double newAmt;
 							std::cout << "Enter new amount >>> "; 
 							std::cin >> newAmt;
-							pfs.updateAmount(idOfTrans, newAmt);
+							pfs.updateAmount(id, newAmt);
 
 							std::cout << "Category has been updated. \n\n";
 							std::cout << "Press Enter to continue... \n";
@@ -171,6 +177,8 @@ int main(void) {
 						}
 					}
 				}
+                pfs.updateCsv();
+				break;
 			}
 
 			case 4: {
@@ -192,7 +200,8 @@ int main(void) {
 				if (c == 'y') { 
 					
 					int d = pfs.deleteTransactionById(idToDelete); 
-					if (d != -1) {
+					if (d == 0) {
+                        pfs.updateCsv();
 						std::cout << "\nTransaction has been deleted. \n\n";
 					} else { std::cout << "\nThere was a problem. \n\n";} 
 				} else { std::cout << "Nevermind.\n"; }
@@ -217,15 +226,10 @@ int main(void) {
 				printHeader();
 				std::cout << "\nYou have accessed the secret Location!\n\n";
 
-				int id_ = 0;
-				std::cout << "\nEnter id:\n";
-				std::cin >> id_;
-				readRecord(id_);
-				updateRecord(id_);
+                std::cout << "\nLedger Balance: " << pfs.getBalance() << std::endl;
 
-				std::cout << "\n\nPress Enter to continue... \n";
-				std::cin.get();
-				std::cin.get();
+                std::cout << "Press Enter to continue... " << std::endl;
+                std::cin.get(); std::cin.get();
 				break;
 			}
 
@@ -234,10 +238,12 @@ int main(void) {
 				break;
 			}
 		}
+
 	}
 	return 0;
+
+
+
 }
 // std::cout << "Press Enter to continue... " <<< std::endl;
 // // std::cin.get();
-// // std::cin.get();
-
