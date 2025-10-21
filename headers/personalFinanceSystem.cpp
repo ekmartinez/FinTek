@@ -1,3 +1,4 @@
+#include <exception>
 #include <string>
 #include <cerrno>
 #include <vector>
@@ -5,11 +6,15 @@
 #include <algorithm>
 #include <iomanip>
 #include <fstream>
+#include <cstdio>
+
 
 #include "helpers.h"
 #include "personalFinanceSystem.h"
 
+
 std::string PersonalFinanceSystem::csvFilePath = "./storage/ledger.csv";
+std::string PersonalFinanceSystem::csvTempPath = "./storage/ledger.tmp";
 
 void PersonalFinanceSystem::addCategory(const std::string& str) {
 	category.push_back(str);
@@ -107,12 +112,41 @@ void PersonalFinanceSystem::loadFromCsv() {
     std::cerr << "loadFromCsv: finished. total loaded = " << transactions.size() << '\n';
 }
 
+void PersonalFinanceSystem::updateCsv() {
+
+    std::ofstream file(csvTempPath);
+    if (!file.is_open()) {
+        std::cerr << "Error: Could not open temporary file for writing.\n";
+        return;
+    }
+
+    file << "Id,Date,Description,Category,Amount\n";
+
+    for (const auto &t : transactions) {
+        // Escape any commans or quotes
+        file << t.id << ','
+            << t.date << ','
+            << t.desc << ','
+            << t.cat << ','
+            << t.amt << '\n';
+    }
+
+    file.close();
+
+    if (std::rename(csvTempPath.c_str(), csvFilePath.c_str()) != 0) {
+        perror("Error replacing CSV file");
+    } else {
+        std::cout << "CSV successfully updated.\n";
+    }
+
+}
+
 void PersonalFinanceSystem::addTransaction(int id, const std::string& date,
 	const std::string& desc, const std::string& cat, const double amt) {
 
 	Transactions newTransaction = {id, date, desc, cat, amt};
 	transactions.push_back(newTransaction);
-    AddToCsv(id, date, desc, cat, amt);
+    //AddToCsv(id, date, desc, cat, amt); // use update csv instead
 	std::cout << "Data saved.;";
  }
 
@@ -138,34 +172,6 @@ int PersonalFinanceSystem::searchTransaction(const int id = 0) {
 
 	return 0;
 }
-
-// int PersonalFinanceSystem::searchTransaction(const int id = 0) {
-// 	// C prints better tables
-//
-// 	// Prints ledger from object (std::vector<struct>)
-//
-// 	// Header
-// 	printf("%-8s %-12s %-25s %-15s %-10s",
-// 			"Id", "Date", "Description", "Category", "Amount");
-//
-// 	if (id == 0) {
-// 		// If Id 0 print all for menu 2 - Display Transactions
-// 		for (const auto& ts : transactions) {
-// 			printf("\n%-8d %-12s %-25s %-15s %-10.2f",
-// 				ts.id, ts.date.c_str(), ts.desc.c_str(), ts.cat.c_str(), ts.amt);
-// 		}
-// 	} else {
-// 		// Else prints transaction by id.
-// 		for (const auto& ts : transactions) {
-// 			if (int(id) == ts.id) {
-// 				printf("\n%-8d %-12s %-25s %-15s %-10.2f",
-// 					ts.id, ts.date.c_str(), ts.desc.c_str(), ts.cat.c_str(), ts.amt);
-// 			}
-// 		}
-// 	}
-//
-// 	return 0;
-// }
 
 int PersonalFinanceSystem::findIndexById(int targetId) {
 

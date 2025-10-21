@@ -59,6 +59,7 @@ int main(void) {
 										
 					if (input == "y") {
 						pfs.addTransaction(id, date, description, cat, amount);
+                        pfs.updateCsv();
 						char opts;
 						std::cout << "\nDo you wish to add another transaction? (y|n) >>> ";
 						std::cin >> opts;
@@ -172,7 +173,7 @@ int main(void) {
 						}
 					}
 				}
-
+                pfs.updateCsv();
 				break;
 			}
 
@@ -195,7 +196,8 @@ int main(void) {
 				if (c == 'y') { 
 					
 					int d = pfs.deleteTransactionById(idToDelete); 
-					if (d != -1) {
+					if (d == 0) {
+                        pfs.updateCsv();
 						std::cout << "\nTransaction has been deleted. \n\n";
 					} else { std::cout << "\nThere was a problem. \n\n";} 
 				} else { std::cout << "Nevermind.\n"; }

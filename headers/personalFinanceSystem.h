@@ -18,6 +18,7 @@ class PersonalFinanceSystem {
 
 		std::vector<Transactions> transactions;
 		static std::string csvFilePath;
+		static std::string csvTempPath;
 
 	public:
 		void addCategory(const std::string& str);
@@ -36,6 +37,7 @@ class PersonalFinanceSystem {
 		int getLastId();
         void AddToCsv(const int id, const std::string date, const std::string desc, const std::string cat, double amt);
         void loadFromCsv();
+        void updateCsv();
 };
 
 #endif
