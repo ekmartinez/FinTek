@@ -5,11 +5,9 @@
 #include <iostream>
 
 #include "helpers.h"
-#include "personalFinanceSystem.h"
 
 void printHeader() {
 	system("clear");
-    PersonalFinanceSystem pfs;
 
 	std::cout <<"\n"
 	<< "########:'####:'##::: ##:'########:'########:'##:::'##::::::::::'##::::'##::::\n"
