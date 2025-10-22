@@ -12,18 +12,13 @@
 #include "helpers.h"
 #include "personalFinanceSystem.h"
 
-double balance = 0.00;
-
-std::string PersonalFinanceSystem::csvFilePath = "./storage/ledger.csv";
-std::string PersonalFinanceSystem::csvTempPath = "./storage/ledger.tmp";
-std::vector<std::string> categories = {"Income", "Food", "Rent", "Utilities", "Taxes", "Investments"};
-
 void PersonalFinanceSystem::addCategory(const std::string& str) {
 	category.push_back(str);
 	std::cout << "Added: " << str << std::endl;
 }
 
-void PersonalFinanceSystem::displayCategories() {
+void PersonalFinanceSystem::displayCategories()
+{
 	std::cout << "\nCategories\n" << "-----------\n";
 	for (size_t i = 0; i < category.size(); ++i)  {
 			std::cout << category[i] << ", \n";
@@ -35,11 +30,7 @@ void PersonalFinanceSystem::updateCategory(const int id, const std::string newCa
 }
 
 void PersonalFinanceSystem::AddToCsv(const int id, const std::string date, const std::string desc, const std::string cat, double amt) {
-
-    std::fstream fout;
-    fout.open(csvFilePath, std::ios::out | std::ios::app);
-    fout << id << ", " << date << ", " << desc << ", " << cat << ", " << amt << std::endl;
-
+    ;;
 }
 
 void PersonalFinanceSystem::loadFromCsv() {
@@ -48,13 +39,6 @@ void PersonalFinanceSystem::loadFromCsv() {
 
 void PersonalFinanceSystem::updateCsv() {
     ;;
-}
-
-int callback(void *NotUsed, int argc, char **argv, char **azColName)
-{
-    // Return successful
-    return 0;
-
 }
 
 void PersonalFinanceSystem::addTransaction(
@@ -103,27 +87,59 @@ void PersonalFinanceSystem::addTransaction(
     sqlite3_close(db);
 };
 
-int PersonalFinanceSystem::searchTransaction(const int id = 0) {
-/*
-    // Header
-    printf("%-8s %-12s %-25s %-15s %-10s",
-            "Id", "Date", "Description", "Category", "Amount");
+int PersonalFinanceSystem::findTransaction(const int id = 0) {
 
-	if (id == 0) {
-		// If Id 0 print all for menu 2 - Display Transactions
-		for (const auto& ts : transactions) {
-            cPrintsBetterTables(ts.id, ts.date, ts.description, ts.categoryId, ts.amout);
-		}
-	} else {
-		// Else prints transaction by id.
-		for (const auto& ts : transactions) {
-			if (int(id) == ts.id) {
-                cPrintsBetterTables(ts.id, ts.date, ts.desc, ts.cat, ts.amt);
-			}
-		}
-	}
+  sqlite3 *db = nullptr;
+  sqlite3_stmt* stmt = nullptr;
 
-	*/
+  if (sqlite3_open_v2(dbPath.c_str(), &db,
+                      SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE,
+                      nullptr) != SQLITE_OK) {
+      std::cerr << "Cannot open database: " << sqlite3_errmsg(db) << std::endl;
+      return -1;
+  }
+
+  const char *sql = R"(
+    SELECT
+        t.TransactionId,
+        t.Date,
+        t.Description,
+        c.CategoryDescription,
+        t.Amount,
+        t.Type
+    FROM Transactions t
+    LEFT JOIN Category c ON t.CategoryId = c.CategoryId
+    ORDER BY t.date DESC;
+    )";
+
+  if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK) {
+    std::cerr << "Failed to prepare query: " << sqlite3_errmsg(db) << std::endl;
+    sqlite3_close(db);
+
+  }
+  printf("%-8s %-12s %-25s %-15s %-10s %-10s\n",
+         "Id", "Date", "Description", "Category", "Amount", "Type");
+
+  while (sqlite3_step(stmt) == SQLITE_ROW) {
+      int id = sqlite3_column_int(stmt, 0);
+      const unsigned char* date = sqlite3_column_text(stmt, 1);
+      const unsigned char* description = sqlite3_column_text(stmt, 2);
+      const unsigned char* category = sqlite3_column_text(stmt, 3);
+      double amount = sqlite3_column_double(stmt, 4);
+      const unsigned char* type = sqlite3_column_text(stmt, 5);
+
+
+        printf("%-8d %-12s %-25s %-15s %-10.2f %-10s\n",
+            id,
+            date ? (const char*)date : "",
+            description ? (const char*)description : "",
+            category ? (const char*)category : "",
+            amount,
+            type ? (const char*)type : "");
+        }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
 
 	return 0;
 }

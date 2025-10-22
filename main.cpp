@@ -93,7 +93,7 @@ int main(void) {
 			}
 			case 2: {
 				printHeader();
-				pfs.searchTransaction(0);
+				pfs.findTransaction(0);
 				std::cout << "\n\nPress Enter to continue... \n";
 
                 std::string temp = "";
@@ -215,7 +215,7 @@ int main(void) {
 				std::cout << "You've chosen to delete id" 
 							<< idToDelete << ": \n";
 
-				pfs.searchTransaction(idToDelete);
+				pfs.findTransaction(idToDelete);
 
 				std::cout << "\n\nAre you sure? (y|n): ";
 
@@ -251,9 +251,13 @@ int main(void) {
 				printHeader();
 				std::cout << "\nYou have accessed the secret Location!\n\n";
 
-                std::cout << "\nLedger Balance: " << pfs.getBalance() << std::endl;
+                std::string temp;
+                std::cout << "\nEnter id: ";
+                std::getline(std::cin, temp);
 
-                std::cout << "Press Enter to continue... " << std::endl;
+                pfs.findTransaction(0);
+
+                std::cout << "Press Enter to continue... ";
 
                 std::cin.get();
                 std::string tmp;
