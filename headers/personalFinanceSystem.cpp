@@ -1,13 +1,12 @@
-#include <exception>
 #include <string>
 #include <cerrno>
 #include <vector>
-#include <iostream>
-#include <algorithm>
+#include <cstdio>
 #include <iomanip>
 #include <fstream>
-#include <cstdio>
-
+#include <iostream>
+#include <algorithm>
+#include <exception>
 
 #include "helpers.h"
 #include "personalFinanceSystem.h"
@@ -16,6 +15,7 @@ double balance = 0.00;
 
 std::string PersonalFinanceSystem::csvFilePath = "./storage/ledger.csv";
 std::string PersonalFinanceSystem::csvTempPath = "./storage/ledger.tmp";
+std::vector<std::string> categories = {"Income", "Food", "Rent", "Utilities", "Taxes", "Investments"};
 
 void PersonalFinanceSystem::addCategory(const std::string& str) {
 	category.push_back(str);
