@@ -22,8 +22,10 @@ int main(void) {
 			<< "\t2. Display Transactions\n"
 			<< "\t3. Update Transaction\n"
 			<< "\t4. Delete Transaction\n"
-			<< "\t5. Summary Report\n"
-			<< "\t6. Exit\n"
+			<< "\t5. Add Category\n"
+			<< "\t6. Update Category\n"
+			<< "\t7. Delete Category\n"
+			<< "\t8. Exit\n"
 			<< "\nChoose an option: ";
 
         std::getline(std::cin, line);
@@ -47,11 +49,14 @@ int main(void) {
 					std::string cat = "";
 					std::cout << "Enter transaction's category: ";
 					std::getline(std::cin, cat);
+                    int categoryId = std::stoi(cat);
 
 					std::string tmpAmt = "";
 					std::cout << "Enter transaction's amount: ";
 					std::getline(std::cin, tmpAmt);
                     double amount = std::stod(tmpAmt);
+
+                    std::string type = "income";
 
 					std::cout << "\nData Entered and ready to be saved:\n\n"
 						<< "Id: " << id << std::endl
@@ -65,7 +70,7 @@ int main(void) {
 					std::getline(std::cin, input);
 
 					if (input == "y") {
-						pfs.addTransaction(id, date, description, cat, amount);
+						pfs.addTransaction(date, description, categoryId, amount, type);
                         pfs.updateCsv();
 
 						std::string opts;
@@ -260,7 +265,6 @@ int main(void) {
 				break;
 			}
 		}
-
 	}
 	return 0;
 }

@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <exception>
 
+#include "sqlite3.h"
 #include "helpers.h"
 #include "personalFinanceSystem.h"
 
@@ -42,117 +43,68 @@ void PersonalFinanceSystem::AddToCsv(const int id, const std::string date, const
 }
 
 void PersonalFinanceSystem::loadFromCsv() {
-    transactions.clear();
-
-    std::ifstream file("storage/ledger.csv");
-    if (!file.is_open()) {
-        std::cerr << "loadFromCsv: ERROR — could not open file \"storage/ledger.csv\". errno=" << errno << '\n';
-        return;
-    }
-
-    auto trim_cr = [](std::string &s) {
-        if (!s.empty() && s.back() == '\r') s.pop_back();
-        // optionally trim BOM at start
-        if (s.size() >= 3 && (unsigned char)s[0] == 0xEF && (unsigned char)s[1] == 0xBB && (unsigned char)s[2] == 0xBF) {
-            s.erase(0, 3);
-        }
-    };
-
-    std::string line;
-    // Read header (if there is one) and show it
-    if (!std::getline(file, line)) {
-        std::cerr << "loadFromCsv: file is empty\n";
-        return;
-    }
-    trim_cr(line);
-    std::cerr << "loadFromCsv: header: \"" << line << "\"\n";
-
-    int lineno = 1;
-    while (std::getline(file, line)) {
-        ++lineno;
-        trim_cr(line);
-        if (line.empty()) {
-            std::cerr << "loadFromCsv: skipping empty line " << lineno << '\n';
-            continue;
-        }
-
-        std::istringstream iss(line);
-        std::string id_str, amt_str;
-        Transactions t;                // use a short local name, not 'transactions'
-
-        // id
-        if (!std::getline(iss, id_str, ',')) {
-            std::cerr << "loadFromCsv: malformed line " << lineno << " (missing id): \"" << line << "\"\n";
-            continue;
-        }
-        try {
-            t.id = std::stoi(id_str);
-        } catch (const std::exception &e) {
-            std::cerr << "loadFromCsv: stoi failed on line " << lineno << " id=\"" << id_str << "\" -> " << e.what() << '\n';
-            continue;
-        }
-
-        // date, desc, cat (these may be empty)
-        if (!std::getline(iss, t.date, ',')) t.date.clear();
-        if (!std::getline(iss, t.desc, ',')) t.desc.clear();
-        if (!std::getline(iss, t.cat, ',')) t.cat.clear();
-
-        // amount
-        if (!std::getline(iss, amt_str, ',')) amt_str.clear();
-        try {
-            t.amt = amt_str.empty() ? 0.0 : std::stod(amt_str);
-        } catch (const std::exception &e) {
-            std::cerr << "loadFromCsv: stod failed on line " << lineno << " amt=\"" << amt_str << "\" -> " << e.what() << '\n';
-            t.amt = 0.0; // fallback
-        }
-
-        transactions.push_back(std::move(t));
-        std::cerr << "loadFromCsv: loaded line " << lineno << " id=" << transactions.back().id << '\n';
-    }
-
-    std::cerr << "loadFromCsv: finished. total loaded = " << transactions.size() << '\n';
+    ;;
 }
 
 void PersonalFinanceSystem::updateCsv() {
+    ;;
+}
 
-    std::ofstream file(csvTempPath);
-    if (!file.is_open()) {
-        std::cerr << "Error: Could not open temporary file for writing.\n";
-        return;
-    }
-
-    file << "Id,Date,Description,Category,Amount\n";
-
-    for (const auto &t : transactions) {
-        // Escape any commans or quotes
-        file << t.id << ','
-            << t.date << ','
-            << t.desc << ','
-            << t.cat << ','
-            << t.amt << '\n';
-    }
-
-    file.close();
-
-    if (std::rename(csvTempPath.c_str(), csvFilePath.c_str()) != 0) {
-        perror("Error replacing CSV file");
-    } else {
-        std::cout << "CSV successfully updated.\n";
-    }
+int callback(void *NotUsed, int argc, char **argv, char **azColName)
+{
+    // Return successful
+    return 0;
 
 }
 
-void PersonalFinanceSystem::addTransaction(int id, const std::string& date,
-	const std::string& desc, const std::string& cat, const double amt) {
+void PersonalFinanceSystem::addTransaction(
+    const std::string& date,
+    const std::string& description,
+    int categoryId,
+    double amount,
+    const std::string& type
+) {
+    sqlite3* db = nullptr;
+    sqlite3_stmt* stmt = nullptr;
 
-	Transactions newTransaction = {id, date, desc, cat, amt};
-	transactions.push_back(newTransaction);
-    //AddToCsv(id, date, desc, cat, amt); // use update csv instead
-	std::cout << "Data saved.;";
- }
+    // Open database (create if it doesn't exist)
+    if (sqlite3_open_v2(dbPath.c_str(), &db,
+                        SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, nullptr) != SQLITE_OK) {
+        std::cerr << "Cannot open database: " << sqlite3_errmsg(db) << std::endl;
+        return;
+    }
+
+    // Minimal insert SQL
+    const char* sql = "INSERT INTO Transactions (Date, Description, CategoryId, Amount, Type) "
+                      "VALUES (?, ?, ?, ?, ?);";
+
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK) {
+        std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_close(db);
+        return;
+    }
+
+    // Bind variables
+    sqlite3_bind_text(stmt, 1, date.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(stmt, 2, description.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_int(stmt, 3, categoryId);
+    sqlite3_bind_double(stmt, 4, amount);
+    sqlite3_bind_text(stmt, 5, type.c_str(), -1, SQLITE_TRANSIENT);
+
+    // Execute insert
+    if (sqlite3_step(stmt) != SQLITE_DONE) {
+        std::cerr << "Insert failed: " << sqlite3_errmsg(db) << std::endl;
+    } else {
+        std::cout << "Transaction added successfully.\n";
+    }
+
+    // Cleanup
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+};
 
 int PersonalFinanceSystem::searchTransaction(const int id = 0) {
-
+/*
     // Header
     printf("%-8s %-12s %-25s %-15s %-10s",
             "Id", "Date", "Description", "Category", "Amount");
@@ -160,7 +112,7 @@ int PersonalFinanceSystem::searchTransaction(const int id = 0) {
 	if (id == 0) {
 		// If Id 0 print all for menu 2 - Display Transactions
 		for (const auto& ts : transactions) {
-            cPrintsBetterTables(ts.id, ts.date, ts.desc, ts.cat, ts.amt);
+            cPrintsBetterTables(ts.id, ts.date, ts.description, ts.categoryId, ts.amout);
 		}
 	} else {
 		// Else prints transaction by id.
@@ -170,6 +122,8 @@ int PersonalFinanceSystem::searchTransaction(const int id = 0) {
 			}
 		}
 	}
+
+	*/
 
 	return 0;
 }
@@ -196,12 +150,12 @@ void PersonalFinanceSystem::updateDate(const int id, const std::string newDate) 
 
 void PersonalFinanceSystem::updateDescription(const int id, const std::string newDesc) {
 	int i = findIndexById(id);
-	transactions[i].desc = newDesc;
+	transactions[i].description = newDesc;
 }
 
 void PersonalFinanceSystem::updateAmount(const int id, const double newAmt) {
 	int i = findIndexById(id);
-	transactions[i].amt = newAmt;
+	transactions[i].amount = newAmt;
 }
 
 int PersonalFinanceSystem::deleteTransactionById(int targetId) {
@@ -229,6 +183,6 @@ int PersonalFinanceSystem::getLastId() {
 
 double PersonalFinanceSystem::getBalance() {
     balance = 0;
-    for (auto &t : transactions) { balance += t.amt; }
+    for (auto& t : transactions) { balance += t.amount; }
     return balance ;
 }

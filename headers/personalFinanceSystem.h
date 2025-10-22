@@ -12,20 +12,23 @@ class PersonalFinanceSystem {
 		struct Transactions {
 			int id;
 			std::string date;
-			std::string desc;
-			std::string cat;
-			double amt;
+			std::string description;
+			int categoryId;
+			double amount;
+            std::string type;
 		};
 
 		std::vector<Transactions> transactions;
 		static std::string csvFilePath;
 		static std::string csvTempPath;
 
+        std::string dbPath = "./storage/ledger.db";
+
 	public:
 		void addCategory(const std::string& str);
 		void displayCategories();
 		void deleteCategory(const std::string& cat);
-		void addTransaction(int id, const std::string& date, const std::string& desc, const std::string& cat, const double amt);
+		void addTransaction(const std::string& date, const std::string& description, int categoryId, double amount, const std::string& type);
 		void displayTransactions();
 		int searchTransaction(const int id);
 		int findIndexById(int targetId);
