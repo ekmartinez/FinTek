@@ -10,6 +10,7 @@
 
 #include "sqlite3.h"
 #include "helpers.h"
+#include "queries.h"
 #include "personalFinanceSystem.h"
 
 void PersonalFinanceSystem::addCategory(const std::string& str) {
