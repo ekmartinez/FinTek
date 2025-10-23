@@ -13,7 +13,30 @@
 #include "queries.h"
 #include "personalFinanceSystem.h"
 
-void PersonalFinanceSystem::addCategory(const std::string& str) {
+PersonalFinanceSystem::PersonalFinanceSystem(const std::string &path)
+    : dbPath(path)
+{
+  if (sqlite3_open_v2(dbPath.c_str(), &db,
+                      SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE,
+                      nullptr) != SQLITE_OK) {
+      std::cerr << "Cannot open database: " << sqlite3_errmsg(db) << std::endl;
+      db = nullptr;
+  } else {
+      std::cout << "Database opened successfully.\n";
+  }
+}
+
+PersonalFinanceSystem::~PersonalFinanceSystem()
+{
+  if (db)
+  {
+      sqlite3_close(db);
+      std::cout << "Database closed.\n";
+  }
+}
+
+void PersonalFinanceSystem::addCategory(const std::string &str)
+{
 	category.push_back(str);
 	std::cout << "Added: " << str << std::endl;
 }
@@ -26,20 +49,10 @@ void PersonalFinanceSystem::displayCategories()
 	}
 }
 
-void PersonalFinanceSystem::updateCategory(const int id, const std::string newCategory) {
+void PersonalFinanceSystem::updateCategory(const int id,
+                                           const std::string newCategory)
+{
 	std::cout << "Hello from updateCategory()\n" << id << " " << newCategory << " " << std::endl;
-}
-
-void PersonalFinanceSystem::AddToCsv(const int id, const std::string date, const std::string desc, const std::string cat, double amt) {
-    ;;
-}
-
-void PersonalFinanceSystem::loadFromCsv() {
-    ;;
-}
-
-void PersonalFinanceSystem::updateCsv() {
-    ;;
 }
 
 void PersonalFinanceSystem::addTransaction(
@@ -49,21 +62,18 @@ void PersonalFinanceSystem::addTransaction(
     double amount,
     const std::string& type
 ) {
-    sqlite3* db = nullptr;
+  if (!db)
+  {
+      std::cerr << "Database not initialized.\n";
+      return;
+  }
+    // Minimal insert SQL
+    std::string sql = SQL_INSERT_TRANSACTION;
+
     sqlite3_stmt* stmt = nullptr;
 
-    // Open database (create if it doesn't exist)
-    if (sqlite3_open_v2(dbPath.c_str(), &db,
-                        SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, nullptr) != SQLITE_OK) {
-        std::cerr << "Cannot open database: " << sqlite3_errmsg(db) << std::endl;
-        return;
-    }
-
-    // Minimal insert SQL
-    const char* sql = "INSERT INTO Transactions (Date, Description, CategoryId, Amount, Type) "
-                      "VALUES (?, ?, ?, ?, ?);";
-
-    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK) {
+    if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK)
+    {
         std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << std::endl;
         sqlite3_close(db);
         return;
@@ -77,43 +87,26 @@ void PersonalFinanceSystem::addTransaction(
     sqlite3_bind_text(stmt, 5, type.c_str(), -1, SQLITE_TRANSIENT);
 
     // Execute insert
-    if (sqlite3_step(stmt) != SQLITE_DONE) {
+    if (sqlite3_step(stmt) != SQLITE_DONE)
+    {
         std::cerr << "Insert failed: " << sqlite3_errmsg(db) << std::endl;
-    } else {
+    } else
+    {
         std::cout << "Transaction added successfully.\n";
     }
 
-    // Cleanup
+    // exec
     sqlite3_finalize(stmt);
-    sqlite3_close(db);
 };
 
-int PersonalFinanceSystem::findTransaction(const int id = 0) {
-
-  sqlite3 *db = nullptr;
+int PersonalFinanceSystem::findTransaction()
+{
   sqlite3_stmt* stmt = nullptr;
 
-  if (sqlite3_open_v2(dbPath.c_str(), &db,
-                      SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE,
-                      nullptr) != SQLITE_OK) {
-      std::cerr << "Cannot open database: " << sqlite3_errmsg(db) << std::endl;
-      return -1;
-  }
+  std::string sql = SQL_GET_ALL;
 
-  const char *sql = R"(
-    SELECT
-        t.TransactionId,
-        t.Date,
-        t.Description,
-        c.CategoryDescription,
-        t.Amount,
-        t.Type
-    FROM Transactions t
-    LEFT JOIN Category c ON t.CategoryId = c.CategoryId
-    ORDER BY t.date DESC;
-    )";
-
-  if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK) {
+  if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK)
+  {
     std::cerr << "Failed to prepare query: " << sqlite3_errmsg(db) << std::endl;
     sqlite3_close(db);
 
@@ -121,7 +114,8 @@ int PersonalFinanceSystem::findTransaction(const int id = 0) {
   printf("%-8s %-12s %-25s %-15s %-10s %-10s\n",
          "Id", "Date", "Description", "Category", "Amount", "Type");
 
-  while (sqlite3_step(stmt) == SQLITE_ROW) {
+  while (sqlite3_step(stmt) == SQLITE_ROW)
+  {
       int id = sqlite3_column_int(stmt, 0);
       const unsigned char* date = sqlite3_column_text(stmt, 1);
       const unsigned char* description = sqlite3_column_text(stmt, 2);
@@ -137,10 +131,9 @@ int PersonalFinanceSystem::findTransaction(const int id = 0) {
             category ? (const char*)category : "",
             amount,
             type ? (const char*)type : "");
-        }
+    }
 
     sqlite3_finalize(stmt);
-    sqlite3_close(db);
 
 	return 0;
 }

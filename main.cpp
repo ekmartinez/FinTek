@@ -6,9 +6,7 @@
 #include "headers/personalFinanceSystem.h"
 
 int main(void) {
-	PersonalFinanceSystem pfs;
-
-    pfs.loadFromCsv();
+	PersonalFinanceSystem pfs("./storage/ledger.db");
 
 	while(1) {
 
@@ -71,7 +69,6 @@ int main(void) {
 
 					if (input == "y") {
 						pfs.addTransaction(date, description, categoryId, amount, type);
-                        pfs.updateCsv();
 
 						std::string opts;
 						std::cout << "\nDo you wish to add another transaction? (y|n) >>> ";
@@ -93,11 +90,10 @@ int main(void) {
 			}
 			case 2: {
 				printHeader();
-				pfs.findTransaction(0);
+				pfs.findTransaction();
 				std::cout << "\n\nPress Enter to continue... \n";
 
                 std::string temp = "";
-                std::cin.get();
                 std::getline(std::cin, temp);
 
 				break;
@@ -200,7 +196,6 @@ int main(void) {
 						}
 					}
 				}
-                pfs.updateCsv();
 				break;
 			}
 
@@ -215,7 +210,7 @@ int main(void) {
 				std::cout << "You've chosen to delete id" 
 							<< idToDelete << ": \n";
 
-				pfs.findTransaction(idToDelete);
+				pfs.findTransaction();
 
 				std::cout << "\n\nAre you sure? (y|n): ";
 
@@ -225,7 +220,6 @@ int main(void) {
 				if (opts == "y") {
 					int d = pfs.deleteTransactionById(idToDelete);
 					if (d == 0) {
-                        pfs.updateCsv();
 						std::cout << "\nTransaction has been deleted. \n\n";
 					} else { std::cout << "\nThere was a problem. \n\n";} 
 				} else { std::cout << "Nevermind.\n"; }
@@ -255,7 +249,7 @@ int main(void) {
                 std::cout << "\nEnter id: ";
                 std::getline(std::cin, temp);
 
-                pfs.findTransaction(0);
+                pfs.findTransaction();
 
                 std::cout << "Press Enter to continue... ";
 
