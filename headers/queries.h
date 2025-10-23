@@ -98,4 +98,10 @@ static const char* SQL_DELETE_CATEGORY = R"(
     WHERE CategoryId = ?;
 )";
 
+static const char *SQL_GET_CATEGORY_ID = R"(
+    SELECT CategoryId
+    FROM Category
+    WHERE CategoryDescription = ?;
+)";
+
 #endif // QUERIES_H

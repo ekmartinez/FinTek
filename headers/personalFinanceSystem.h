@@ -33,12 +33,16 @@ class PersonalFinanceSystem {
         // Destructor
         ~PersonalFinanceSystem();
 
-		void addCategory(const std::string& str);
+		void addTransaction(const std::string& date, const std::string& description, int categoryId, double amount, const std::string& type);
+		int findTransaction(int id = 0);
+        int getCategoryId(const std::string& categoryName);
+		int addCategory(const std::string& categoryName);
+
+
+
 		void displayCategories();
 		void deleteCategory(const std::string& cat);
-		void addTransaction(const std::string& date, const std::string& description, int categoryId, double amount, const std::string& type);
 		void displayTransactions();
-		int findTransaction();
 		int findIndexById(int targetId);
 		void updateDate(const int id, const std::string newDate);
 		void updateDescription(const int id, const std::string newDesc);

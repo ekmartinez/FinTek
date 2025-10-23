@@ -35,22 +35,56 @@ PersonalFinanceSystem::~PersonalFinanceSystem()
   }
 }
 
-void PersonalFinanceSystem::addCategory(const std::string &str)
+int PersonalFinanceSystem::addCategory(const std::string& categoryName)
 {
-	category.push_back(str);
-	std::cout << "Added: " << str << std::endl;
+    if (!db) { return -1; }
+
+    const char* sql = SQL_GET_CATEGORY_ID;
+    sqlite3_stmt* stmt = nullptr;
+
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK) {
+        std::cerr << "Prepare failed: " << sqlite3_errmsg(db) << std::endl;
+        return -1;
+    }
+
+    sqlite3_bind_text(stmt, 1, categoryName.c_str(), -1, SQLITE_TRANSIENT);
+
+    if (sqlite3_step(stmt) != SQLITE_DONE) {
+        std::cerr << "Insert failed: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+    return static_cast<int>(sqlite3_last_insert_rowid(db));
 }
 
-void PersonalFinanceSystem::displayCategories()
+int PersonalFinanceSystem::getCategoryId(const std::string &categoryName)
 {
-	std::cout << "\nCategories\n" << "-----------\n";
-	for (size_t i = 0; i < category.size(); ++i)  {
-			std::cout << category[i] << ", \n";
-	}
+    if (!db) { return -1; }
+
+    const char* sql = SQL_GET_CATEGORY_ID;
+    sqlite3_stmt* stmt = nullptr;
+
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK) {
+        std::cerr << "Prepare failed: " << sqlite3_errmsg(db) << std::endl;
+        return -1;
+    }
+
+    sqlite3_bind_text(stmt, 1, categoryName.c_str(), -1, SQLITE_TRANSIENT);
+
+    int categoryId = -1;
+    if (sqlite3_step(stmt) == SQLITE_ROW)
+    {
+        categoryId = sqlite3_column_int(stmt, 0);
+    }
+
+    sqlite3_finalize(stmt);
+
+    return categoryId;
 }
 
-void PersonalFinanceSystem::updateCategory(const int id,
-                                           const std::string newCategory)
+void PersonalFinanceSystem::updateCategory(const int id, const std::string newCategory)
 {
 	std::cout << "Hello from updateCategory()\n" << id << " " << newCategory << " " << std::endl;
 }
@@ -99,7 +133,7 @@ void PersonalFinanceSystem::addTransaction(
     sqlite3_finalize(stmt);
 };
 
-int PersonalFinanceSystem::findTransaction()
+int PersonalFinanceSystem::findTransaction(int id)
 {
   sqlite3_stmt* stmt = nullptr;
 

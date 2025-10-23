@@ -51,43 +51,25 @@ int main(void)
         case 1:
         // ADD TRANSACTION
         {
-          std::string date;
-          while (1)
-          {
-            printHeader();
-
-            // Date
-            std::cout << "\nEnter Transaction's date "
-                << "(leave blank for today: " << date << "): ";
-
-            std::getline(std::cin, date);
-
-            if (date == "")
+            std::string date = getCurrentDate();
+            while (1)
             {
-                date = getCurrentDate();
-                break;
-            } else if (date != "")
-            {
-                date = date;
-                break;
-            } else {
-                std::cout << "You have entered an invalid input." << std::endl;
-                pressEnterTocontinue();
-                continue;
-            }
-
-            // Validate date before leaving
-            if (isValidDate(date))
-            {
-                break;
-            } else {
                 printHeader();
-                std::cout << "The date is invalid, enter date in valid form (YYYY-MM-DD).";
-                pressEnterTocontinue();
-                continue;
-            }
 
-          }
+                std::cout << "\nEnter Transaction's date "
+                    << "(leave blank for today: " << date << "): ";
+
+                std::getline(std::cin, date);
+
+                if (date.empty())
+                {
+                    date = getCurrentDate();
+                    break;
+                } else {
+                        std::cout << "There was problem in the getCurrentDate() function." << std::endl;
+                        continue;
+                }
+            }
 
             // ENTER Limit
             // TODO: Limit size
@@ -115,7 +97,8 @@ int main(void)
                     default:
                         std::cout << "Wrong selection (1 | 2)" << std::endl;
                         pressEnterTocontinue();
-                        break;
+                        printHeader();
+                        continue;
                 }
 
                 break;
@@ -127,16 +110,30 @@ int main(void)
             std::cout << "Enter Description: ";
             std::getline(std::cin, description);
 
-
             // CATEGORIZATION
-            std::string cat = "";
+            std::string categoryName = "";
+
             std::cout << "Enter transaction's category: ";
-            std::getline(std::cin, cat);
-            int categoryId = std::stoi(cat);
+            std::getline(std::cin, categoryName);
+
+            if (pfs.getCategoryId(categoryName) == -1) {
+                std::string tmp = "";
+                std::cout << "Category does not exist, do you want to add it? (1 - Yes | 2 - No): ";
+                std::getline(std::cin, tmp);
+                int answer = std::stoi(tmp);
+
+                switch (answer) {
+                    case 1: {
+                        pfs.addCategory(categoryName);
+                        break;
+                    }
+                    case 2:
+                    default:
+                        break;
+                }
+            }
+
             // ENDS CATEGORIZATION
-
-
-
 
             // AMOUNT
             // TODO: Reasonableness check
@@ -147,146 +144,152 @@ int main(void)
             // TODO: Error checking
             double amount = std::stod(tmpAmt);
 
+            // Data summary before saving
             std::cout << "\nData Entered and ready to be saved:\n\n"
-                << "Date: "<< date << std::endl
-                << "Description: " << description << std::endl
-                << "Category: " << cat << std::endl
-                << "Amount: " << amount << std::endl;
+                      << "Date: " << date << std::endl
+                      << "Description: " << description << std::endl
+                      << "Category: " << categoryName << std::endl
+                      << "Amount: " << amount << std::endl
+                      << "Type: " << type << std::endl;
 
             std::cout << "\nSave? (y|n) >> ";
             std::string input;
             std::getline(std::cin, input);
 
-            if (input == "y") {
+            if (input == "y")
+            {
+              int categoryId = pfs.getCategoryId(categoryName);
                 pfs.addTransaction(date, description, categoryId, amount, type);
 
                 std::string opts;
                 std::cout << "\nDo you wish to add another transaction? (y|n) >>> ";
                 std::getline(std::cin, opts);
 
-                if (opts == "y") {
+                if (opts == "y")
+                {
                     printHeader();
-                    continue; }
-            } else if (input == "n") {
+                    continue;
+                }
+            } else if (input == "n")
+            {
                 printHeader();
                 break;
-                } else {
-                    std::cout << "Wrong option.\n";
-                    continue;
+            } else
+            {
+                std::cout << "Wrong option.\n";
+                continue;
                 }
                 break;
             }
 
-			case 2: {
-				printHeader();
-				pfs.findTransaction();
-				std::cout << "\n\nPress Enter to continue... \n";
+        case 2:
+        {
+            printHeader();
+            pfs.findTransaction();
+            pressEnterTocontinue();
+            break;
+		}
+            case 3:
+            {
+            // Update Transaction
 
-                std::string temp = "";
-                std::getline(std::cin, temp);
+            printHeader();
+            // Search for Id of transaction
+            std::string tempId = 0;
+            std::cout << "Enter Id of transaction: ";
+            std::getline(std::cin, tempId);
+            int id = std::stoi(tempId);
 
-				break;
-			}
-			case 3: {
-				// Update Transaction 
+            std::cout << std::endl;
 
-				printHeader();
-				// Search for Id of transaction
-				std::string tempId = 0;
-				std::cout << "Enter Id of transaction: ";
-                std::getline(std::cin, tempId);
-                int id = std::stoi(tempId);
+            // If id found
+            if (pfs.findIndexById(id == 1)) {
+                std::cout << "\n\nWhat do you want to update?: "
+                << "\n\t1-" << "Date\n"
+                << "\t2-" << "Description\n"
+                << "\t3-" << "Category\n"
+                << "\t4-" << "Amount\n"
+                << "Choose an option: "
+                << std::endl;
 
-                std::cout << std::endl;
+                std::string line = "";
+                std::getline(std::cin, line);
+                int optn = std::stoi(line);
 
-				// If id found
-				if (pfs.findIndexById(id == 1)) { 
-					std::cout << "\n\nWhat do you want to update?: "
-					<< "\n\t1-" << "Date\n"
-					<< "\t2-" << "Description\n"
-					<< "\t3-" << "Category\n"
-					<< "\t4-" << "Amount\n"
-					<< "Choose an option: " 
-					<< std::endl;
+                switch (optn) {
+                    case 1: {
+                        // update date
+                        std::string date;
+                        std::cout << "Enter new date >>> ";
+                        std::getline(std::cin, date);
 
-					std::string line = "";
-                    std::getline(std::cin, line);
-                    int optn = std::stoi(line);
+                        if (isValidDate(date)) {
+                            pfs.updateDate(id, date);
+                        }
 
-					switch (optn) {
-						case 1: { 
-							// update date 
-							std::string date;
-							std::cout << "Enter new date >>> ";
-                            std::getline(std::cin, date);
+                        std::cout << "Date has been updated. \n\n";
+                        std::cout << "Press Enter to continue... \n";
 
-							if (isValidDate(date)) {
-								pfs.updateDate(id, date);
-							}
+                        std::string line;
+                        std::cin.get();
+                        std::getline(std::cin, line);
+                        break;
+                    }
+                    case 2: {
+                        // Update Description
+                        std::string newDesc;
+                        std::cout << "Enter new description (char limit = 10) >>> ";
+                        std::getline(std::cin, line);
 
-							std::cout << "Date has been updated. \n\n";
-							std::cout << "Press Enter to continue... \n";
+                        pfs.updateDescription(id, newDesc);
 
-                            std::string line;
-							std::cin.get();
-                            std::getline(std::cin, line);
-							break;
-						}
-						case 2: {
-							// Update Description
-							std::string newDesc;
-							std::cout << "Enter new description (char limit = 10) >>> ";
-                            std::getline(std::cin, line);
+                        std::cout << "Description has been updated. \n\n";
+                        std::cout << "Press Enter to continue... \n";
+                        std::string tmp;
+                        std::cin.get();
+                        std::getline(std::cin, tmp);
+                        break;
+                    }
+                    case 3: {
+                        // Update Category
+                        std::string newCat;
+                        std::cout << "Enter new category (char limit = 10) >>> ";
+                        std::getline(std::cin, newCat);
+                        pfs.updateCategory(id, newCat);
 
-							pfs.updateDescription(id, newDesc);
+                        std::cout << "Category has been updated. \n\n";
+                        std::cout << "Press Enter to continue... \n";
 
-							std::cout << "Description has been updated. \n\n";
-							std::cout << "Press Enter to continue... \n";
-                            std::string tmp;
-							std::cin.get();
-							std::getline(std::cin, tmp);
-							break;
-						}
-						case 3: {
-							// Update Category
-							std::string newCat;
-							std::cout << "Enter new category (char limit = 10) >>> ";
-                            std::getline(std::cin, newCat);
-							pfs.updateCategory(id, newCat);
+                        std::string tmp;
+                        std::cin.get();
+                        std::getline(std::cin, tmp);
+                        break;
+                    }
+                    case 4: {
+                        // Update Amount
+                        std::string line;
+                        std::cout << "Enter new amount >>> ";
+                        std::getline(std::cin, line);
+                        double newAmt = std::stod(line);
 
-							std::cout << "Category has been updated. \n\n";
-							std::cout << "Press Enter to continue... \n";
+                        pfs.updateAmount(id, newAmt);
 
-                            std::string tmp;
-							std::cin.get();
-							std::getline(std::cin, tmp);
-							break;
-						}
-						case 4: {
-							// Update Amount
-							std::string line;
-							std::cout << "Enter new amount >>> ";
-                            std::getline(std::cin, line);
-                            double newAmt = std::stod(line);
+                        std::cout << "Category has been updated. \n\n";
+                        std::cout << "Press Enter to continue... \n";
 
-							pfs.updateAmount(id, newAmt);
-
-							std::cout << "Category has been updated. \n\n";
-							std::cout << "Press Enter to continue... \n";
-
-                            std::string tmp;
-							std::cin.get();
-							std::getline(std::cin, tmp);
-							break;
-						}
-						default: {
-							std::cout << "Wrong Option"; 
-							break;
-						}
-					}
-				}
-				break;
-			}
+                        std::string tmp;
+                        std::cin.get();
+                        std::getline(std::cin, tmp);
+                        break;
+                    }
+                    default: {
+                        std::cout << "Wrong Option";
+                        break;
+                    }
+                }
+            }
+            break;
+        }
 
 			case 4: {
 				printHeader();
