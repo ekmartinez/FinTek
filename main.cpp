@@ -5,19 +5,33 @@
 #include "headers/helpers.h"
 #include "headers/personalFinanceSystem.h"
 
-int main(void) {
-	PersonalFinanceSystem pfs("./storage/ledger.db");
+void pressEnterTocontinue()
+{
+  std::string tmp = "";
+  std::cout << "Press enter to continue ... ";
+  std::getline(std::cin, tmp);
+}
 
-	while(1) {
+int main(void)
+{
+
+  PersonalFinanceSystem pfs("./storage/ledger.db");
+
+    while (1)
+    {
 
 		printHeader();
+
+        // Starts Dashboard
         std::cout << "Ledger Balance: $" << pfs.getBalance() << std::endl;
 
-		std::string line = "";
-		std::cout << "\nWelcome to the Personal Finance Tracker!\n" 
+
+        // Ends Dashboard
+
+		std::cout << "\nIncome / Exepese Trakcker\n" 
 			<< "---------------------------------------\n" 
 			<< "\t1. Add Transaction\n"
-			<< "\t2. Display Transactions\n"
+			<< "\t2. Search Transactions\n"
 			<< "\t3. Update Transaction\n"
 			<< "\t4. Delete Transaction\n"
 			<< "\t5. Add Category\n"
@@ -26,68 +40,143 @@ int main(void) {
 			<< "\t8. Exit\n"
 			<< "\nChoose an option: ";
 
+		std::string line = "";
         std::getline(std::cin, line);
 
+        // TODO: Error checking
         int option = std::stoi(line);
 
-		switch (option) {
-			case 1: { 
-				printHeader();
-				while(1) {
-					int id = pfs.getLastId() + 1;
-					
-					std::string date = getCurrentDate();
-					std::cout << "Enter transaction's date: ";
-					std::getline(std::cin, date);
+        switch (option)
+        {
+        case 1:
+        // ADD TRANSACTION
+        {
+          std::string date;
+          while (1)
+          {
+            printHeader();
 
-					std::string description = "";
-					std::cout << "Enter transaction's description: ";
-					std::getline(std::cin, description);
+            // Date
+            std::cout << "\nEnter Transaction's date "
+                << "(leave blank for today: " << date << "): ";
 
-					std::string cat = "";
-					std::cout << "Enter transaction's category: ";
-					std::getline(std::cin, cat);
-                    int categoryId = std::stoi(cat);
+            std::getline(std::cin, date);
 
-					std::string tmpAmt = "";
-					std::cout << "Enter transaction's amount: ";
-					std::getline(std::cin, tmpAmt);
-                    double amount = std::stod(tmpAmt);
+            if (date == "")
+            {
+                date = getCurrentDate();
+                break;
+            } else if (date != "")
+            {
+                date = date;
+                break;
+            } else {
+                std::cout << "You have entered an invalid input." << std::endl;
+                pressEnterTocontinue();
+                continue;
+            }
 
-                    std::string type = "income";
+            // Validate date before leaving
+            if (isValidDate(date))
+            {
+                break;
+            } else {
+                printHeader();
+                std::cout << "The date is invalid, enter date in valid form (YYYY-MM-DD).";
+                pressEnterTocontinue();
+                continue;
+            }
 
-					std::cout << "\nData Entered and ready to be saved:\n\n"
-						<< "Id: " << id << std::endl
-						<< "Date: "<< date << std::endl
-						<< "Description: " << description << std::endl
-						<< "Category: " << cat << std::endl
-						<< "Amount: " << amount << std::endl;
+          }
 
-					std::cout << "\nSave? (y|n) >> ";
-					std::string input;
-					std::getline(std::cin, input);
+            // ENTER Limit
+            // TODO: Limit size
+            std::string type = "";
 
-					if (input == "y") {
-						pfs.addTransaction(date, description, categoryId, amount, type);
+            while (1)
+            {
+                std::string tmp = "";
+                std::cout << "Enter transaction type (1 - Income / 2 - Expense): ";
+                std::getline(std::cin, tmp);
+                int t_type = std::stoi(tmp);
 
-						std::string opts;
-						std::cout << "\nDo you wish to add another transaction? (y|n) >>> ";
-                        std::getline(std::cin, opts);
+                switch (t_type)
+                {
+                    case 1:
+                    {
+                        type = "income";
+                        break;
+                    }
+                    case 2:
+                    {
+                        type = "expense";
+                        break;
+                    }
+                    default:
+                        std::cout << "Wrong selection (1 | 2)" << std::endl;
+                        pressEnterTocontinue();
+                        break;
+                }
 
-						if (opts == "y") {
-							printHeader();
-							continue; }
-					} else if (input == "n") {
-						printHeader();
-						break;
-					} else { 
-						std::cout << "Wrong option.\n"; 
-						continue;
-					}
-					break;
-				}
-				break;
-			}
+                break;
+            }
+
+            // ENTER DESCRIPTION
+            // TODO: Limit size
+            std::string description = "";
+            std::cout << "Enter Description: ";
+            std::getline(std::cin, description);
+
+
+            // CATEGORIZATION
+            std::string cat = "";
+            std::cout << "Enter transaction's category: ";
+            std::getline(std::cin, cat);
+            int categoryId = std::stoi(cat);
+            // ENDS CATEGORIZATION
+
+
+
+
+            // AMOUNT
+            // TODO: Reasonableness check
+            std::string tmpAmt = "";
+            std::cout << "Enter transaction's amount: ";
+            std::getline(std::cin, tmpAmt);
+
+            // TODO: Error checking
+            double amount = std::stod(tmpAmt);
+
+            std::cout << "\nData Entered and ready to be saved:\n\n"
+                << "Date: "<< date << std::endl
+                << "Description: " << description << std::endl
+                << "Category: " << cat << std::endl
+                << "Amount: " << amount << std::endl;
+
+            std::cout << "\nSave? (y|n) >> ";
+            std::string input;
+            std::getline(std::cin, input);
+
+            if (input == "y") {
+                pfs.addTransaction(date, description, categoryId, amount, type);
+
+                std::string opts;
+                std::cout << "\nDo you wish to add another transaction? (y|n) >>> ";
+                std::getline(std::cin, opts);
+
+                if (opts == "y") {
+                    printHeader();
+                    continue; }
+            } else if (input == "n") {
+                printHeader();
+                break;
+                } else {
+                    std::cout << "Wrong option.\n";
+                    continue;
+                }
+                break;
+            }
+
 			case 2: {
 				printHeader();
 				pfs.findTransaction();

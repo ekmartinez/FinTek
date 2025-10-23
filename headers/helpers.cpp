@@ -23,12 +23,17 @@ void printHeader() {
 
 }
 
-void cPrintsBetterTables(const int id, const std::string dt, const std::string desc, const std::string cat, const double amt)
-{
+void cPrintsBetterTables(
+    int id,
+    const std::string dt,
+    const std::string type,
+    const std::string desc,
+    const std::string cat,
+    double amt
+    ) {
 
-	printf("\n%-8d %-12s %-25s %-15s %-10.2f",
-		id, dt.c_str(), desc.c_str(), cat.c_str(), amt);
-
+	printf("\n%-8d %-12s %-8s %-25s %-15s %-10.2f",
+		id, dt.c_str(), type.c_str(), desc.c_str(), cat.c_str(), amt);
 }
 
 std::string getCurrentDate()
