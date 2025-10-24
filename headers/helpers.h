@@ -5,6 +5,7 @@
 
 int daysInMonth();
 void printHeader();
+void pressEnterToContinue();
 void cPrintsBetterTables(const int id, const std::string dt, const std::string desc, const std::string cat, const double amt);
 std::string getCurrentDate();
 bool isValidDate(const std::string& date);

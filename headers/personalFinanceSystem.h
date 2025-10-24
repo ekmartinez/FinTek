@@ -37,19 +37,24 @@ class PersonalFinanceSystem {
 		int findTransaction(int id = 0);
         int getCategoryId(const std::string& categoryName);
 		int addCategory(const std::string& categoryName);
+		int deleteTransactionById(int targetId);
+        void loadTransactionFromDB();
 
+
+
+
+
+		void updateDate(int id, const std::string newDate);
+		void updateDescription(int id, const std::string newDesc);
+		void updateCategory(int id, const std::string newCategory);
+		void updateAmount(int id, const double newAmt);
 
 
 		void displayCategories();
 		void deleteCategory(const std::string& cat);
 		void displayTransactions();
 		int findIndexById(int targetId);
-		void updateDate(const int id, const std::string newDate);
-		void updateDescription(const int id, const std::string newDesc);
-		void updateCategory(const int id, const std::string newCategory);
-		void updateAmount(const int id, const double newAmt);
-		int deleteTransactionById(int targetId);
-		void summaryReport();
+        void summaryReport();
 		int getLastId();
         double getBalance();
 };

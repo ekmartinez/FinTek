@@ -172,8 +172,83 @@ int PersonalFinanceSystem::findTransaction(int id)
 	return 0;
 }
 
-int PersonalFinanceSystem::findIndexById(int targetId) {
+int PersonalFinanceSystem::deleteTransactionById(int idToDelete)
+{
+    sqlite3_stmt* stmt = nullptr;
 
+
+    if (sqlite3_prepare_v2(db, SQL_DELETE_TRANSACTION, -1, &stmt, nullptr) !=
+        SQLITE_OK)
+    {
+        std::cerr << "Failed to prepare delete statement:" << sqlite3_errmsg(db) << std::endl;
+    }
+
+    // Bind the ID
+    sqlite3_bind_int(stmt, 1, idToDelete);
+
+    // Execute
+    int rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE)
+    {
+        fprintf(stderr, "Error deleting transaction: %s\n", sqlite3_errmsg(db));
+        std::cerr << "Error deleting transaction." << sqlite3_errmsg(db) << std::endl;
+    } else
+    {
+      if (sqlite3_changes(db) > 0)
+      {
+         std::cout << "\nTransaction with ID " << idToDelete << " deleted successfully.\n";
+      } else {
+          std::cout << "\nNo transaction found wit ID " << idToDelete << "." << std::endl;
+      }
+
+    }
+    sqlite3_finalize(stmt);
+
+	return 0;
+}
+
+void PersonalFinanceSystem::loadTransactionFromDB()
+{
+    sqlite3_stmt *stmt = nullptr;
+
+    transactions.clear();
+    int rc = sqlite3_prepare_v2(db, SQL_GET_ALL, -1, &stmt, nullptr);
+    if (rc != SQLITE_OK)
+    {
+        std::cerr << "Failed to prepare SELECT statement: "
+            << sqlite3_errmsg(db) << std::endl;
+
+        return;
+    }
+
+
+    while ((rc = sqlite3_step(stmt)) == SQLITE_ROW)
+    {
+      Transactions t;
+      t.id = sqlite3_column_int(stmt, 0);
+      t.date = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+      t.description = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
+      t.categoryId = sqlite3_column_int(stmt, 3);
+      t.amount = sqlite3_column_double(stmt, 4);
+      t.type = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5));
+
+      transactions.push_back(t);
+    }
+
+    if (rc != SQLITE_DONE)
+    {
+        std::cerr << "Error retrieving transactions: "
+            << sqlite3_errmsg(db) << std::endl;
+    } else {
+      std::cout << "Loaded "<< transactions.size()
+                << " transactions from database." << std::endl;
+
+        
+    }
+}
+
+int PersonalFinanceSystem::findIndexById(int targetId)
+{
 	for (size_t i = 0; i < transactions.size(); ++i) {
 		if (transactions[i].id == targetId) {
 			return static_cast<int>(i);
@@ -202,18 +277,7 @@ void PersonalFinanceSystem::updateAmount(const int id, const double newAmt) {
 	transactions[i].amount = newAmt;
 }
 
-int PersonalFinanceSystem::deleteTransactionById(int targetId) {
-	auto it = std::remove_if(transactions.begin(), transactions.end(),
-				[targetId](const Transactions& t) { return t.id == targetId; });
 
-	if (it != transactions.end()) {
-		transactions.erase(it, transactions.end());
-		std::cout << "Transaction with ID " << targetId << " deleted.\n";
-		return 1;
-	}
-
-	return -1;
-}
 
 void PersonalFinanceSystem::summaryReport() {
 	std::cout << "Hello from summaryReport()\n";
