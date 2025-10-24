@@ -6,7 +6,7 @@
 int daysInMonth();
 void printHeader();
 void pressEnterToContinue();
-void cPrintsBetterTables(const int id, const std::string dt, const std::string desc, const std::string cat, const double amt);
+void cPrintsBetterTables(int id, const std::string date, const std::string type, const std::string description, int categoryId, double amount);
 std::string getCurrentDate();
 bool isValidDate(const std::string& date);
 std::string  safeInput(std::size_t maxLen, const std::string&); // NW 

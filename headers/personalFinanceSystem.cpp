@@ -56,6 +56,7 @@ int PersonalFinanceSystem::addCategory(const std::string& categoryName)
     }
 
     sqlite3_finalize(stmt);
+
     return static_cast<int>(sqlite3_last_insert_rowid(db));
 }
 
@@ -133,41 +134,26 @@ void PersonalFinanceSystem::addTransaction(
     sqlite3_finalize(stmt);
 };
 
-int PersonalFinanceSystem::findTransaction(int id)
+int PersonalFinanceSystem::findTransaction(int id = 0)
 {
-  sqlite3_stmt* stmt = nullptr;
-
-  std::string sql = SQL_GET_ALL;
-
-  if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK)
+  if (id == 0)
   {
-    std::cerr << "Failed to prepare query: " << sqlite3_errmsg(db) << std::endl;
-    sqlite3_close(db);
-
-  }
-  printf("%-8s %-12s %-25s %-15s %-10s %-10s\n",
-         "Id", "Date", "Description", "Category", "Amount", "Type");
-
-  while (sqlite3_step(stmt) == SQLITE_ROW)
-  {
-      int id = sqlite3_column_int(stmt, 0);
-      const unsigned char* date = sqlite3_column_text(stmt, 1);
-      const unsigned char* description = sqlite3_column_text(stmt, 2);
-      const unsigned char* category = sqlite3_column_text(stmt, 3);
-      double amount = sqlite3_column_double(stmt, 4);
-      const unsigned char* type = sqlite3_column_text(stmt, 5);
-
-
-        printf("%-8d %-12s %-25s %-15s %-10.2f %-10s\n",
-            id,
-            date ? (const char*)date : "",
-            description ? (const char*)description : "",
-            category ? (const char*)category : "",
-            amount,
-            type ? (const char*)type : "");
+    // If Id 0 print all transactions
+    for (const auto &ts : transactions)
+    {
+        cPrintsBetterTables(ts.id, ts.date, ts.type, ts.description, ts.categoryId, ts.amount);
     }
-
-    sqlite3_finalize(stmt);
+    } else
+    {
+		// Else prints transaction by id.
+        for (const auto &ts : transactions)
+        {
+        if (int(id) == ts.id)
+            {
+                cPrintsBetterTables(ts.id, ts.date, ts.type, ts.description, ts.categoryId, ts.amount);
+            }
+		}
+	}
 
 	return 0;
 }
