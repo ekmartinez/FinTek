@@ -221,7 +221,6 @@ void PersonalFinanceSystem::loadTransactionFromDB()
         return;
     }
 
-
     while ((rc = sqlite3_step(stmt)) == SQLITE_ROW)
     {
       Transactions t;
@@ -242,9 +241,8 @@ void PersonalFinanceSystem::loadTransactionFromDB()
     } else {
       std::cout << "Loaded "<< transactions.size()
                 << " transactions from database." << std::endl;
-
-        
     }
+    sqlite3_finalize(stmt);
 }
 
 int PersonalFinanceSystem::findIndexById(int targetId)
@@ -276,8 +274,6 @@ void PersonalFinanceSystem::updateAmount(const int id, const double newAmt) {
 	int i = findIndexById(id);
 	transactions[i].amount = newAmt;
 }
-
-
 
 void PersonalFinanceSystem::summaryReport() {
 	std::cout << "Hello from summaryReport()\n";
