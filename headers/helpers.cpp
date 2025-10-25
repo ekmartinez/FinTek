@@ -25,7 +25,7 @@ void printHeader() {
 void pressEnterToContinue()
 {
   std::string tmp = "";
-  std::cout << "Press enter to continue ... ";
+  std::cout << "\n\nPress enter to continue ... ";
   std::getline(std::cin, tmp);
 }
 
@@ -40,8 +40,6 @@ void cPrintsBetterTables(
 
 	printf("\n%-8d %-12s %-8s %-25s %-15d %-10.2f",
 		id, date.c_str(), type.c_str(), description.c_str(), categoryId, amount);
-
-    std::cout << "" << std::endl;
 }
 
 std::string getCurrentDate()

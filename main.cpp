@@ -234,7 +234,8 @@ int main(void)
 
             case 4:
             {
-                // Update Transaction
+
+               // Update Transaction
 
                 printHeader();
                 // Search for Id of transaction
@@ -245,9 +246,38 @@ int main(void)
                 int id = std::stoi(tmp);
 
                 std::cout << std::endl;
+                if (pfs.findIndexById(id == 1))
+                {
+                  do
+                  {
+                      std::string tempVar = "";
+                      std::string options = "";
 
-                // If id found
-                if (pfs.findIndexById(id == 1)) {
+                      std::vector<std::string> fields = {
+                        "Date",
+                        "Type",
+                        "Description",
+                        "CategoryId",
+                        "Amount"
+                        };
+
+                      for (auto &field : fields)
+                      {
+                          std::cout << "Change " << field << " ? (y | n) ";
+                          std::getline(std::cin, options);
+                          if (options == "y")
+                          {
+                             std::cout << "Enter new " << field << ": " << std::endl;
+                             std::getline(std::cin, tempVar);
+                             pfs.updateRecord(id, field, tempVar);
+                          } else { break; }
+                      }
+                    } while (1);
+            }
+
+/*
+                if (pfs.findIndexById(id == 1))
+                {
                     std::cout << "\n\nWhat do you want to update?\n"
                     << "1 - Date\n"
                     << "2 - Type\n"
@@ -261,72 +291,95 @@ int main(void)
                     std::getline(std::cin, line);
                     int optn = std::stoi(line);
 
-                    switch (optn) {
-                        case 1: {
+                    switch (optn)
+                    {
+                        case 1:
+                        {
                             // update date
                             std::string date = "";
                             std::cout << "Enter new date >>> ";
                             std::getline(std::cin, date);
 
-                            if (isValidDate(date)) {
-                                pfs.updateDate(id, date);
+                            if (isValidDate(date))
+                            {
+                                // pfs.updateDate(id, date);
+                                pfs.updateRecord(id, "Date", date);
                             }
 
-                            std::cout << "Date has been updated. \n\n";
-                            std::cout << "Press Enter to continue... \n";
-
-                            std::string line = "";
-                            std::cin.get();
-                            std::getline(std::cin, line);
+                            std::cout << "\nDate has been updated. \n\n";
+                            pfs.loadTransactionFromDB();
+                            pressEnterToContinue();
                             break;
                         }
-                        case 2: {
+                        case 2:
+                        {
+                            // update type
+                            std::string newType = "";
+                            std::cout << "Enter new type >>> ";
+                            std::getline(std::cin, newType);
+
+                            pfs.updateRecord(id, "Type", newType);
+
+                            std::cout << "Type has been updated. \n\n";
+
+                            pfs.loadTransactionFromDB();
+                            pressEnterToContinue();
+                            break;
+                        }
+                        case 3:
+                        {
                             // Update Description
                             std::string newDesc = "";
                             std::cout << "Enter new description (char limit = 10) >>> ";
                             std::getline(std::cin, line);
 
-                            pfs.updateDescription(id, newDesc);
+                            pfs.updateRecord(id, "Description", newDesc);
 
                             std::cout << "Description has been updated. \n\n";
+
+                            pfs.loadTransactionFromDB();
                             pressEnterToContinue();
                             break;
                         }
-                        case 3: {
+                        case 4:
+                        {
                             // Update Category
                             std::string newCat = "";
                             std::cout << "Enter new category (char limit = 10) >>> ";
                             std::getline(std::cin, newCat);
-                            pfs.updateCategory(id, newCat);
+
+                            pfs.updateRecord(id, "CategoryId", newCat);
 
                             std::cout << "Category has been updated. \n\n";
-                            std::cout << "Press Enter to continue... \n";
 
-                            std::string tmp = "";
-                            std::cin.get();
-                            std::getline(std::cin, tmp);
-                            break;
-                        }
-                        case 4: {
-                            // Update Amount
-                            std::string line = "";
-                            std::cout << "Enter new amount >>> ";
-                            std::getline(std::cin, line);
-                            double newAmt = std::stod(line);
-
-                            pfs.updateAmount(id, newAmt);
-
-                            std::cout << "Category has been updated. \n\n";
+                            pfs.loadTransactionFromDB();
                             pressEnterToContinue();
+                           break;
+                        }
+                        case 5:
+                        {
+                            // Update Amount
+                            std::string newAmount = "";
+                            std::cout << "Enter new amount >>> ";
+                            std::getline(std::cin, newAmount);
+
+                            pfs.updateRecord(id, "Amount", newAmount);
+
+                            std::cout << "Amount has been updated. \n\n";
+                            pressEnterToContinue();
+
+                            pfs.loadTransactionFromDB();
                             break;
                         }
-                        default: {
+                        default:
+                        {
                             std::cout << "Wrong Option";
                             break;
                         }
                     }
                 }
                 break;
+                */
             }
 
             case 5:
@@ -362,6 +415,8 @@ int main(void)
                             {
                                 std::cout << "\nTransaction has been deleted. \n\n";
                             }
+
+                            pfs.loadTransactionFromDB();
                             pressEnterToContinue();
                             printHeader();
                             break;
@@ -369,6 +424,8 @@ int main(void)
                         case 2:
                         {
                             std::cout << "\nThere was a problem. \n";
+
+                            pfs.loadTransactionFromDB();
                             pressEnterToContinue();
                             printHeader();
                             break;

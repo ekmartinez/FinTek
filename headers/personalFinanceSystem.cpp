@@ -13,26 +13,36 @@
 #include "queries.h"
 #include "personalFinanceSystem.h"
 
+// Constructor
 PersonalFinanceSystem::PersonalFinanceSystem(const std::string &path)
-    : dbPath(path)
+    : dbPath(path), db(nullptr)
 {
-  if (sqlite3_open_v2(dbPath.c_str(), &db,
-                      SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE,
-                      nullptr) != SQLITE_OK) {
-      std::cerr << "Cannot open database: " << sqlite3_errmsg(db) << std::endl;
-      db = nullptr;
-  } else {
-      std::cout << "Database opened successfully.\n";
+        std::cout << "Initialized\n";
+}
+
+// Destructor
+PersonalFinanceSystem::~PersonalFinanceSystem() {
+  if (db) {
+    sqlite3_close(db);
+    db = nullptr;
   }
 }
 
-PersonalFinanceSystem::~PersonalFinanceSystem()
-{
-  if (db)
-  {
-      sqlite3_close(db);
-      std::cout << "Database closed.\n";
-  }
+bool PersonalFinanceSystem::openDB() {
+    if (sqlite3_open_v2(dbPath.c_str(), &db,
+                        SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE,
+                        nullptr) != SQLITE_OK) {
+        std::cerr << "Cannot open database: " << sqlite3_errmsg(db) << std::endl;
+        return false;
+    }
+    return true;
+}
+
+void PersonalFinanceSystem::closeDB() {
+    if (db) {
+        sqlite3_close(db);
+        db = nullptr;
+    }
 }
 
 int PersonalFinanceSystem::addCategory(const std::string& categoryName)
@@ -176,7 +186,6 @@ int PersonalFinanceSystem::deleteTransactionById(int idToDelete)
     int rc = sqlite3_step(stmt);
     if (rc != SQLITE_DONE)
     {
-        fprintf(stderr, "Error deleting transaction: %s\n", sqlite3_errmsg(db));
         std::cerr << "Error deleting transaction." << sqlite3_errmsg(db) << std::endl;
     } else
     {
@@ -193,44 +202,121 @@ int PersonalFinanceSystem::deleteTransactionById(int idToDelete)
 	return 0;
 }
 
+bool PersonalFinanceSystem::updateRecord(int transactionId,
+                                         const std::string& field,
+                                         const std::string& newValue)
+{
+    if (!openDB()) { return -1; }
+
+    sqlite3_stmt* stmt = nullptr;
+
+    // Validate Field Name
+    const std::vector<std::string> validFields = {"Date", "Type", "Description", "CategoryId", "Amount"};
+    if (std::find(validFields.begin(), validFields.end(), field) ==
+        validFields.end())
+    {
+        std::cerr << "Error: Invalid field '" << field << "'." << std::endl;
+        return false;
+    }
+
+    std::string specialSql = "UPDATE Transactions SET " + field + " = ? WHERE TransactionId = ?;";
+
+    if (sqlite3_prepare_v2(db, specialSql.c_str(), -1, &stmt, nullptr) !=
+        SQLITE_OK)
+    {
+        std::cerr << "SQL prepare error: " << sqlite3_errmsg(db) << std::endl;
+    }
+
+    // Bind Values
+    if (field == "Amount")
+    {
+      double value = std::stod(newValue);
+      sqlite3_bind_double(stmt, 1, value);
+    } else if (field == "CategoryId")
+    {
+      int value = std::stoi(newValue);
+      sqlite3_bind_int(stmt, 1, value);
+    } else
+    {
+        sqlite3_bind_text(stmt, 1, newValue.c_str(), -1, SQLITE_TRANSIENT);
+    }
+
+    sqlite3_bind_int(stmt, 2, transactionId);
+
+    int rc = sqlite3_step(stmt);
+    bool success = (rc == SQLITE_DONE);
+
+    if (!success)
+    {
+        std::cerr << "SQL execution error: " << sqlite3_errmsg(db) << std::endl;
+    } else
+    {
+      std::cout << "Record with TransactionId " << transactionId
+                << " updated successfully."
+                << std::endl;
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    return true;
+}
 void PersonalFinanceSystem::loadTransactionFromDB()
 {
-    sqlite3_stmt *stmt = nullptr;
-
+    // Clear in-memory cache
     transactions.clear();
-    int rc = sqlite3_prepare_v2(db, SQL_GET_ALL, -1, &stmt, nullptr);
-    if (rc != SQLITE_OK)
-    {
-        std::cerr << "Failed to prepare SELECT statement: "
-            << sqlite3_errmsg(db) << std::endl;
 
+    // Open the database connection
+    if (!openDB()) {
+        std::cerr << "Failed to open database in loadTransactionFromDB().\n";
         return;
     }
 
-    while ((rc = sqlite3_step(stmt)) == SQLITE_ROW)
-    {
-      Transactions t;
-      t.id = sqlite3_column_int(stmt, 0);
-      t.date = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
-      t.description = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
-      t.categoryId = sqlite3_column_int(stmt, 3);
-      t.amount = sqlite3_column_double(stmt, 4);
-      t.type = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5));
+    const char *sql = R"(
+        SELECT
+            TransactionId,
+            Date,
+            Description,
+            CategoryId,
+            Amount,
+            Type
+        FROM Transactions
+        ORDER BY Date ASC;
+    )";
 
-      transactions.push_back(t);
+    sqlite3_stmt *stmt = nullptr;
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+
+    if (rc != SQLITE_OK) {
+        std::cerr << "Failed to prepare SELECT statement: "
+                  << sqlite3_errmsg(db) << std::endl;
+        closeDB();
+        return;
     }
 
-    if (rc != SQLITE_DONE)
-    {
+    while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+        Transactions t;
+        t.id          = sqlite3_column_int(stmt, 0);
+        t.date        = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+        t.description = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
+        t.categoryId  = sqlite3_column_int(stmt, 3);
+        t.amount      = sqlite3_column_double(stmt, 4);
+        t.type        = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5));
+
+        transactions.push_back(t);
+    }
+
+    if (rc != SQLITE_DONE) {
         std::cerr << "Error retrieving transactions: "
-            << sqlite3_errmsg(db) << std::endl;
+                  << sqlite3_errmsg(db) << std::endl;
     } else {
-      std::cout << "Loaded "<< transactions.size()
-                << " transactions from database." << std::endl;
+        std::cout << "Loaded " << transactions.size()
+                  << " transactions from database.\n";
     }
-    sqlite3_finalize(stmt);
-}
 
+    sqlite3_finalize(stmt);
+    closeDB();
+}
 int PersonalFinanceSystem::findIndexById(int targetId)
 {
 	for (size_t i = 0; i < transactions.size(); ++i) {
@@ -238,7 +324,6 @@ int PersonalFinanceSystem::findIndexById(int targetId)
 			return static_cast<int>(i);
 		}
 	}
-
 	return -1;
 }
 
