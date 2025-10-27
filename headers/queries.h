@@ -22,6 +22,7 @@ static const char* SQL_GET_ALL = R"(
         t.TransactionId,
         t.Date,
         t.Description,
+        t.CategoryId,
         c.CategoryDescription,
         t.Amount,
         t.Type

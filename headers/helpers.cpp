@@ -29,19 +29,6 @@ void pressEnterToContinue()
   std::getline(std::cin, tmp);
 }
 
-void cPrintsBetterTables(
-    int id,
-    const std::string date,
-    const std::string description,
-    const std::string type,
-    int categoryId,
-    double amount
-    ) {
-
-	printf("\n%-8d %-12s %-8s %-25s %-15d %-10.2f",
-		id, date.c_str(), type.c_str(), description.c_str(), categoryId, amount);
-}
-
 std::string getCurrentDate()
 {
 	std::time_t t = std::time(nullptr);
@@ -89,10 +76,3 @@ bool isValidDate(const std::string &date)
 
 	return true;
 }
-
-void safeInput() {
-    // Sanitize txt input    
-	;;
-}
-
-

@@ -13,26 +13,25 @@ private:
     bool openDB();
     void closeDB();
 
-    std::vector<std::string> category;
-    double balance = 0.0;
-
     struct Transactions {
         int id;
         std::string date;
         std::string description;
         int categoryId;
+        std::string categoryName;
         double amount;
         std::string type;
     };
 
+    double balance = 0.0;
+
+    std::vector<std::string> categories;
     std::vector<Transactions> transactions;
 
-    // optional: helper functions for per-operation DB open/close
     sqlite3* openConnection();
     void closeConnection(sqlite3* db);
 
 public:
-    // ✅ Fixed constructor signature
     explicit PersonalFinanceSystem(const std::string &path);
     ~PersonalFinanceSystem();
 
@@ -45,18 +44,19 @@ public:
     void loadTransactionFromDB();
     bool updateRecord(int transactionId, const std::string& field, const std::string& newValue);
 
-    void updateDate(int id, const std::string newDate);
-    void updateDescription(int id, const std::string newDesc);
-    void updateCategory(int id, const std::string newCategory);
-    void updateAmount(int id, const double newAmt);
+    void printCategories();
 
-    void displayCategories();
     void deleteCategory(const std::string& cat);
+
     void displayTransactions();
+
     int findIndexById(int targetId);
     void summaryReport();
     int getLastId();
     double getBalance();
+
+    void loadCategoriesFromDB();
+    void tryCat();
 };
 
 #endif

@@ -78,8 +78,6 @@ int main(void)
                     std::cout << "\nEnter Id of transaction (None for all): ";
                     std::getline(std::cin, id);
 
-                    printf("\n%-8s %-12s %-8s %-25s %-15s %-10s\n",
-                            "Id", "Date", "Type", "Description", "Category", "Amount");
 
                     if (id.empty()) {
                         pfs.findTransaction(0);
@@ -143,9 +141,10 @@ int main(void)
                             std::cout << "Wrong selection (1 | 2)" << std::endl;
                             pressEnterToContinue();
                             printHeader();
-                            continue;
+                            break;
                         }
                     }
+                    break;
                 }
 
                 // ENTER DESCRIPTION
@@ -153,44 +152,41 @@ int main(void)
                 std::string description = "";
                 std::cout << "Enter Description: ";
                 std::getline(std::cin, description);
+                // ----------------------------------
 
                 // CATEGORIZATION
+                //
                 std::string categoryName = "";
 
-                std::cout << "Enter transaction's category: ";
-                std::getline(std::cin, categoryName);
+                while (1) {
+                    printHeader();
+                    std::cout << "Enter category: ";
+                    std::getline(std::cin, categoryName);
+                    // ----------------------------------
 
-                if (pfs.getCategoryId(categoryName) == -1) {
-                    std::string tmp = "";
-                    std::cout << "Category does not exist, do you want to add it? (1 - Yes | 2 - No): ";
-                    std::getline(std::cin, tmp);
-                    int answer = std::stoi(tmp);
-
-                    switch (answer)
+                    if (pfs.getCategoryId(categoryName) == -1)
                     {
-                        case 1: {
-                            pfs.addCategory(categoryName);
-                            break;
-                        }
-                        case 2:
-                        default:
-                        {
-                            std::cout << "Wrong option." << std::endl;
-                            pressEnterToContinue();
-                            continue;
-                        }
-                    }
+                        std::string tmp = "";
+                        std::cout << "Category does not exist, do you want to add it? (1 - Yes | 2 - No): ";
+                        std::getline(std::cin, tmp);
+                        int answer = std::stoi(tmp);
 
+                        if (answer == 1) {
+                          pfs.addCategory(categoryName);
+                          break;
+                        } else break;
+                    }
+                    break;
+                }
                 // ENDS CATEGORIZATION
 
                 // AMOUNT
-                // TODO: Reasonableness check
+                printHeader();
                 std::string tmpAmt = "";
                 std::cout << "Enter transaction's amount: ";
                 std::getline(std::cin, tmpAmt);
-
-                // TODO: Error checking
                 double amount = std::stod(tmpAmt);
+                // Threshold stored in db - Todo: check.
 
                 // Data summary before saving
                 std::cout << "\nData Entered and ready to be saved:\n\n"
@@ -206,7 +202,7 @@ int main(void)
 
                 if (input == "y")
                 {
-                int categoryId = pfs.getCategoryId(categoryName);
+                    int categoryId = pfs.getCategoryId(categoryName);
                     pfs.addTransaction(date, description, categoryId, amount, type);
                     pfs.loadTransactionFromDB();
 
@@ -218,170 +214,98 @@ int main(void)
                     {
                         printHeader();
                         continue;
-                    }
-                } else if (input == "n")
-                {
-                    printHeader();
-                    break;
+                    } else if (input == "n")
+                        printHeader();
+                        break;
                 } else
                 {
                     std::cout << "Wrong option.\n";
-                    continue;
-                }
-                break;
+                    break;
                 }
             }
 
             case 4:
             {
+              while (1)
+              {
+                    printHeader();
+                    // Search for Id of transaction
 
-               // Update Transaction
+                    std::string tmp = "";
+                    std::cout << "Enter Id of transaction: ";
+                    std::getline(std::cin, tmp);
+                    int id = std::stoi(tmp);
 
-                printHeader();
-                // Search for Id of transaction
+                    std::cout << std::endl;
 
-                std::string tmp = "";
-                std::cout << "Enter Id of transaction: ";
-                std::getline(std::cin, tmp);
-                int id = std::stoi(tmp);
+                    int i = 0;
+                    std::vector<std::string> fields = { "Date", "Type", "Description", "Category", "Amount" };
 
-                std::cout << std::endl;
-                if (pfs.findIndexById(id == 1))
-                {
-                  do
-                  {
-                      std::string tempVar = "";
-                      std::string options = "";
+                    if (pfs.findIndexById(id == 1))
+                    {
+                        std::cout << "--------\nChange?: \n--------";
 
-                      std::vector<std::string> fields = {
-                        "Date",
-                        "Type",
-                        "Description",
-                        "CategoryId",
-                        "Amount"
-                        };
+                        for (auto& field : fields)
+                        {
+                            printf("| %-14d | ", i++);
+                            printf(" %-14s |\n", field.c_str());
+                        }
+                    } else
+                    {
+                        std::cout << "Id not found.\n";
+                        pressEnterToContinue();
+                        continue;
+                    }
 
-                      for (auto &field : fields)
-                      {
-                          std::cout << "Change " << field << " ? (y | n) ";
-                          std::getline(std::cin, options);
-                          if (options == "y")
-                          {
-                             std::cout << "Enter new " << field << ": " << std::endl;
-                             std::getline(std::cin, tempVar);
-                             pfs.updateRecord(id, field, tempVar);
-                          } else { break; }
-                      }
-                    } while (1);
-            }
+                    std::cout << "Choose an option: ";
+                    std::getline(std::cin, tmp);
+                    int choice = std::stoi(tmp);
 
-/*
-                if (pfs.findIndexById(id == 1))
-                {
-                    std::cout << "\n\nWhat do you want to update?\n"
-                    << "1 - Date\n"
-                    << "2 - Type\n"
-                    << "3 - Description\n"
-                    << "4 - Category\n"
-                    << "5 - Amount\n"
-                    << "Choose an option: "
-                    << std::endl;
-
-                    std::string temp = "";
-                    std::getline(std::cin, line);
-                    int optn = std::stoi(line);
-
-                    switch (optn)
+                    switch (choice)
                     {
                         case 1:
                         {
-                            // update date
-                            std::string date = "";
-                            std::cout << "Enter new date >>> ";
-                            std::getline(std::cin, date);
-
-                            if (isValidDate(date))
-                            {
-                                // pfs.updateDate(id, date);
-                                pfs.updateRecord(id, "Date", date);
-                            }
-
-                            std::cout << "\nDate has been updated. \n\n";
-                            pfs.loadTransactionFromDB();
-                            pressEnterToContinue();
+                            std::cout << "Enter new Date: ";
+                            std::getline(std::cin, tmp);
+                            pfs.updateRecord(id, "Date", tmp);
                             break;
                         }
-                        case 2:
-                        {
-                            // update type
-                            std::string newType = "";
-                            std::cout << "Enter new type >>> ";
-                            std::getline(std::cin, newType);
-
-                            pfs.updateRecord(id, "Type", newType);
-
-                            std::cout << "Type has been updated. \n\n";
-
-                            pfs.loadTransactionFromDB();
-                            pressEnterToContinue();
+                        case 2: {
+                            std::cout << "Enter new Type: ";
+                            std::getline(std::cin, tmp);
+                            pfs.updateRecord(id, "Type", tmp);
                             break;
                         }
-                        case 3:
-                        {
-                            // Update Description
-                            std::string newDesc = "";
-                            std::cout << "Enter new description (char limit = 10) >>> ";
-                            std::getline(std::cin, line);
-
-                            pfs.updateRecord(id, "Description", newDesc);
-
-                            std::cout << "Description has been updated. \n\n";
-
-                            pfs.loadTransactionFromDB();
-                            pressEnterToContinue();
+                        case 3: {
+                            std::cout << "Enter new Description: ";
+                            std::getline(std::cin, tmp);
+                            pfs.updateRecord(id, "Description", tmp);
                             break;
                         }
-                        case 4:
-                        {
-                            // Update Category
-                            std::string newCat = "";
-                            std::cout << "Enter new category (char limit = 10) >>> ";
-                            std::getline(std::cin, newCat);
-
-                            pfs.updateRecord(id, "CategoryId", newCat);
-
-                            std::cout << "Category has been updated. \n\n";
-
-                            pfs.loadTransactionFromDB();
-                            pressEnterToContinue();
-                           break;
-                        }
-                        case 5:
-                        {
-                            // Update Amount
-                            std::string newAmount = "";
-                            std::cout << "Enter new amount >>> ";
-                            std::getline(std::cin, newAmount);
-
-                            pfs.updateRecord(id, "Amount", newAmount);
-
-                            std::cout << "Amount has been updated. \n\n";
-                            pressEnterToContinue();
-
-                            pfs.loadTransactionFromDB();
+                        case 4: {
+                            std::cout << "Enter new Category: ";
+                            std::getline(std::cin, tmp);
+                            pfs.updateRecord(id, "Category", tmp);
                             break;
                         }
-                        default:
-                        {
-                            std::cout << "Wrong Option";
+                        case 5: {
+                            std::cout << "Enter new Amount: ";
+                            std::getline(std::cin, tmp);
+                            pfs.updateRecord(id, "Amount", tmp);
+                            break;
+                        }
+                        default: {
+                            std::cout << "Wrong Option.";
                             break;
                         }
                     }
-                }
-                break;
-                */
-            }
 
+                    std::cout << "Want to make more adjustents? (y | n): ";
+                    std::getline(std::cin, tmp);
+                    if (tmp == "y" || tmp != "n") { continue; } else { break; }
+              }
+              break;
+           }
             case 5:
             {
                 // DELETE TRANSACTION
@@ -398,7 +322,6 @@ int main(void)
                                 << idToDelete << ". \n";
 
                     pfs.findTransaction(idToDelete);
-
 
                     std::cout << "\n\nAre you sure? (1 - Yes / 2 - No): ";
                     std::string tmp;
@@ -435,7 +358,7 @@ int main(void)
                             std::cout << "Wrong selection (1 - Yes / 2 - No)" << std::endl;
                             pressEnterToContinue();
                             printHeader();
-                            continue;
+                            break;
                         }
                     }
                     break;
@@ -481,17 +404,17 @@ int main(void)
                 printHeader();
                 std::cout << "\nHello from updateThreshold() \n";
                 break;
-            }
+   }
 
             case 23: {
                 printHeader();
                 std::cout << "\nYou have accessed the secret Location!\n\n";
-                double balance = pfs.getBalance();
 
-                std::cout << "If everything went well the "
-                            << "ledger balance "
-                            << " should be: "
-                            << balance << std::endl;
+                std::string tmp;
+                std::cout << "\nEnter a category >> ";
+                std::getline(std::cin, tmp);
+
+                std::cout << pfs.getCategoryId(tmp);
 
                 pressEnterToContinue();
                 break;
