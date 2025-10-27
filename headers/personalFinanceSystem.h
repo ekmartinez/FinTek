@@ -1,45 +1,62 @@
-#ifndef PFS
-#define PFS
+#ifndef PFS_H
+#define PFS_H
 
 #include <string>
 #include <vector>
+#include <algorithm>  // for std::find
+#include <sqlite3.h>
 
 class PersonalFinanceSystem {
-	private:
-		std::vector<std::string> category;
-        double balance;
+private:
+    sqlite3* db = nullptr;
+    std::string dbPath;
+    bool openDB();
+    void closeDB();
 
-		struct Transactions {
-			int id;
-			std::string date;
-			std::string desc;
-			std::string cat;
-			double amt;
-		};
+    struct Transactions {
+        int id;
+        std::string date;
+        std::string description;
+        int categoryId;
+        std::string categoryName;
+        double amount;
+        std::string type;
+    };
 
-		std::vector<Transactions> transactions;
-		static std::string csvFilePath;
-		static std::string csvTempPath;
+    double balance = 0.0;
 
-	public:
-		void addCategory(const std::string& str);
-		void displayCategories();
-		void deleteCategory(const std::string& cat);
-		void addTransaction(int id, const std::string& date, const std::string& desc, const std::string& cat, const double amt);
-		void displayTransactions();
-		int searchTransaction(const int id);
-		int findIndexById(int targetId);
-		void updateDate(const int id, const std::string newDate);
-		void updateDescription(const int id, const std::string newDesc);
-		void updateCategory(const int id, const std::string newCategory);
-		void updateAmount(const int id, const double newAmt);
-		int deleteTransactionById(int targetId);
-		void summaryReport();
-		int getLastId();
-        void AddToCsv(const int id, const std::string date, const std::string desc, const std::string cat, double amt);
-        void loadFromCsv();
-        void updateCsv();
-        double getBalance();
+    std::vector<std::string> categories;
+    std::vector<Transactions> transactions;
+
+    sqlite3* openConnection();
+    void closeConnection(sqlite3* db);
+
+public:
+    explicit PersonalFinanceSystem(const std::string &path);
+    ~PersonalFinanceSystem();
+
+    // CRUD and utility functions
+    void addTransaction(const std::string& date, const std::string& description, int categoryId, double amount, const std::string& type);
+    int findTransaction(int id);
+    int getCategoryId(const std::string& categoryName);
+    int addCategory(const std::string& categoryName);
+    int deleteTransactionById(int targetId);
+    void loadTransactionFromDB();
+    bool updateRecord(int transactionId, const std::string& field, const std::string& newValue);
+
+    void printCategories();
+
+    void deleteCategory(const std::string& cat);
+
+    void displayTransactions();
+
+    int findIndexById(int targetId);
+    void summaryReport();
+    int getLastId();
+    double getBalance();
+
+    void loadCategoriesFromDB();
+    void tryCat();
 };
 
 #endif

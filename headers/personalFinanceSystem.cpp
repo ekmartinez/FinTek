@@ -1,234 +1,458 @@
-#include <exception>
 #include <string>
 #include <cerrno>
 #include <vector>
-#include <iostream>
-#include <algorithm>
+#include <cstdio>
 #include <iomanip>
 #include <fstream>
-#include <cstdio>
+#include <iostream>
+#include <algorithm>
+#include <exception>
 
-
+#include "sqlite3.h"
 #include "helpers.h"
+#include "queries.h"
 #include "personalFinanceSystem.h"
 
-double balance = 0.00;
-
-std::string PersonalFinanceSystem::csvFilePath = "./storage/ledger.csv";
-std::string PersonalFinanceSystem::csvTempPath = "./storage/ledger.tmp";
-
-void PersonalFinanceSystem::addCategory(const std::string& str) {
-	category.push_back(str);
-	std::cout << "Added: " << str << std::endl;
+// Constructor
+PersonalFinanceSystem::PersonalFinanceSystem(const std::string &path)
+    : dbPath(path), db(nullptr)
+{
+        std::cout << "Initialized\n";
 }
 
-void PersonalFinanceSystem::displayCategories() {
-	std::cout << "\nCategories\n" << "-----------\n";
-	for (size_t i = 0; i < category.size(); ++i)  {
-			std::cout << category[i] << ", \n";
-	}
+// Destructor
+PersonalFinanceSystem::~PersonalFinanceSystem() {
+  if (db) {
+    sqlite3_close(db);
+    db = nullptr;
+  }
 }
 
-void PersonalFinanceSystem::updateCategory(const int id, const std::string newCategory) {
-	std::cout << "Hello from updateCategory()\n" << id << " " << newCategory << " " << std::endl;
+bool PersonalFinanceSystem::openDB() {
+    if (sqlite3_open_v2(dbPath.c_str(), &db,
+                        SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE,
+                        nullptr) != SQLITE_OK) {
+        std::cerr << "Cannot open database: " << sqlite3_errmsg(db) << std::endl;
+        return false;
+    }
+    return true;
 }
 
-void PersonalFinanceSystem::AddToCsv(const int id, const std::string date, const std::string desc, const std::string cat, double amt) {
-
-    std::fstream fout;
-    fout.open(csvFilePath, std::ios::out | std::ios::app);
-    fout << id << ", " << date << ", " << desc << ", " << cat << ", " << amt << std::endl;
-
+void PersonalFinanceSystem::closeDB() {
+    if (db) {
+        sqlite3_close(db);
+        db = nullptr;
+    }
 }
 
-void PersonalFinanceSystem::loadFromCsv() {
-    transactions.clear();
+int PersonalFinanceSystem::addCategory(const std::string& categoryName)
+{
+    if (!db) { return -1; }
 
-    std::ifstream file("storage/ledger.csv");
-    if (!file.is_open()) {
-        std::cerr << "loadFromCsv: ERROR — could not open file \"storage/ledger.csv\". errno=" << errno << '\n';
+    const char* sql = SQL_GET_CATEGORY_ID;
+    sqlite3_stmt* stmt = nullptr;
+
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK) {
+        std::cerr << "Prepare failed: " << sqlite3_errmsg(db) << std::endl;
+        return -1;
+    }
+
+    sqlite3_bind_text(stmt, 1, categoryName.c_str(), -1, SQLITE_TRANSIENT);
+
+    if (sqlite3_step(stmt) != SQLITE_DONE) {
+        std::cerr << "Insert failed: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+
+    return static_cast<int>(sqlite3_last_insert_rowid(db));
+}
+
+void PersonalFinanceSystem::printCategories() {
+  for (auto& cat : categories) { std::cout << cat << "\n"; }
+  }
+
+int PersonalFinanceSystem::getCategoryId(const std::string& categoryName)
+{
+    // Open database connection
+    if (!openDB())
+    {
+        std::cerr << "Failed to open database in getCategoryId().\n";
+        return -1;
+    }
+
+    const char* sql = SQL_GET_CATEGORY_ID;
+    sqlite3_stmt* stmt = nullptr;
+
+    // Prepare the SQL statement
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK) {
+        std::cerr << "Prepare failed: " << sqlite3_errmsg(db) << std::endl;
+        closeDB();
+        return -1;
+    }
+
+    // Bind parameter (category name)
+    if (sqlite3_bind_text(stmt, 1, categoryName.c_str(), -1, SQLITE_TRANSIENT) != SQLITE_OK) {
+        std::cerr << "Bind failed: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_finalize(stmt);
+        closeDB();
+        return -1;
+    }
+
+    // Execute the query
+    int categoryId = -1;
+    int rc = sqlite3_step(stmt);
+    if (rc == SQLITE_ROW) {
+        categoryId = sqlite3_column_int(stmt, 0);
+    } else if (rc != SQLITE_DONE) {
+        std::cerr << "Step failed: " << sqlite3_errmsg(db) << std::endl;
+    }
+
+    // Cleanup
+    sqlite3_finalize(stmt);
+    closeDB();
+
+    return categoryId;
+}
+
+void PersonalFinanceSystem::addTransaction(
+    const std::string& date,
+    const std::string& description,
+    int categoryId,
+    double amount,
+    const std::string& type
+) {
+    // Open DB connection
+    if (!openDB()) {
+        std::cerr << "Failed to open database in addTransaction().\n";
         return;
     }
 
-    auto trim_cr = [](std::string &s) {
-        if (!s.empty() && s.back() == '\r') s.pop_back();
-        // optionally trim BOM at start
-        if (s.size() >= 3 && (unsigned char)s[0] == 0xEF && (unsigned char)s[1] == 0xBB && (unsigned char)s[2] == 0xBF) {
-            s.erase(0, 3);
-        }
-    };
+    sqlite3_stmt* stmt = nullptr;
 
-    std::string line;
-    // Read header (if there is one) and show it
-    if (!std::getline(file, line)) {
-        std::cerr << "loadFromCsv: file is empty\n";
-        return;
-    }
-    trim_cr(line);
-    std::cerr << "loadFromCsv: header: \"" << line << "\"\n";
-
-    int lineno = 1;
-    while (std::getline(file, line)) {
-        ++lineno;
-        trim_cr(line);
-        if (line.empty()) {
-            std::cerr << "loadFromCsv: skipping empty line " << lineno << '\n';
-            continue;
-        }
-
-        std::istringstream iss(line);
-        std::string id_str, amt_str;
-        Transactions t;                // use a short local name, not 'transactions'
-
-        // id
-        if (!std::getline(iss, id_str, ',')) {
-            std::cerr << "loadFromCsv: malformed line " << lineno << " (missing id): \"" << line << "\"\n";
-            continue;
-        }
-        try {
-            t.id = std::stoi(id_str);
-        } catch (const std::exception &e) {
-            std::cerr << "loadFromCsv: stoi failed on line " << lineno << " id=\"" << id_str << "\" -> " << e.what() << '\n';
-            continue;
-        }
-
-        // date, desc, cat (these may be empty)
-        if (!std::getline(iss, t.date, ',')) t.date.clear();
-        if (!std::getline(iss, t.desc, ',')) t.desc.clear();
-        if (!std::getline(iss, t.cat, ',')) t.cat.clear();
-
-        // amount
-        if (!std::getline(iss, amt_str, ',')) amt_str.clear();
-        try {
-            t.amt = amt_str.empty() ? 0.0 : std::stod(amt_str);
-        } catch (const std::exception &e) {
-            std::cerr << "loadFromCsv: stod failed on line " << lineno << " amt=\"" << amt_str << "\" -> " << e.what() << '\n';
-            t.amt = 0.0; // fallback
-        }
-
-        transactions.push_back(std::move(t));
-        std::cerr << "loadFromCsv: loaded line " << lineno << " id=" << transactions.back().id << '\n';
-    }
-
-    std::cerr << "loadFromCsv: finished. total loaded = " << transactions.size() << '\n';
-}
-
-void PersonalFinanceSystem::updateCsv() {
-
-    std::ofstream file(csvTempPath);
-    if (!file.is_open()) {
-        std::cerr << "Error: Could not open temporary file for writing.\n";
+    // Prepare the SQL
+    if (sqlite3_prepare_v2(db, SQL_INSERT_TRANSACTION, -1, &stmt, nullptr) != SQLITE_OK) {
+        std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << std::endl;
+        closeDB();
         return;
     }
 
-    file << "Id,Date,Description,Category,Amount\n";
-
-    for (const auto &t : transactions) {
-        // Escape any commans or quotes
-        file << t.id << ','
-            << t.date << ','
-            << t.desc << ','
-            << t.cat << ','
-            << t.amt << '\n';
+    // Bind parameters
+    if (sqlite3_bind_text(stmt, 1, date.c_str(), -1, SQLITE_TRANSIENT) != SQLITE_OK ||
+        sqlite3_bind_text(stmt, 2, description.c_str(), -1, SQLITE_TRANSIENT) != SQLITE_OK ||
+        sqlite3_bind_int(stmt, 3, categoryId) != SQLITE_OK ||
+        sqlite3_bind_double(stmt, 4, amount) != SQLITE_OK ||
+        sqlite3_bind_text(stmt, 5, type.c_str(), -1, SQLITE_TRANSIENT) != SQLITE_OK)
+    {
+        std::cerr << "Failed to bind parameter: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_finalize(stmt);
+        closeDB();
+        return;
     }
 
-    file.close();
-
-    if (std::rename(csvTempPath.c_str(), csvFilePath.c_str()) != 0) {
-        perror("Error replacing CSV file");
+    // Execute insert
+    int rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        std::cerr << "Insert failed: " << sqlite3_errmsg(db) << std::endl;
     } else {
-        std::cout << "CSV successfully updated.\n";
+        std::cout << "Transaction added successfully.\n";
     }
 
+    // Cleanup
+    sqlite3_finalize(stmt);
+    closeDB();
 }
 
-void PersonalFinanceSystem::addTransaction(int id, const std::string& date,
-	const std::string& desc, const std::string& cat, const double amt) {
+int PersonalFinanceSystem::findTransaction(int id = 0)
+{
+  if (id == 0) {
+      int w = 120;
+      do { std::cout << "-"; } while ( w-- > 0 );
+      // C Prints Better tables - Headers
+      printf("\n%-8s %-12s %-8s %-25s %-8s %-25s %-10s\n", "| Id      ",
+             "| Date        ", "| Type    ", "| Description              ",
+             "| CategoryId",
+             " | CategoryName             ", "| Amount     |");
 
-	Transactions newTransaction = {id, date, desc, cat, amt};
-	transactions.push_back(newTransaction);
-    //AddToCsv(id, date, desc, cat, amt); // use update csv instead
-	std::cout << "Data saved.;";
- }
+        w = 120;
+        do { std::cout << "-"; } while ( w-- > 0 );
 
-int PersonalFinanceSystem::searchTransaction(const int id = 0) {
+        // If Id 0 print all transactions
+        for (const auto& ts : transactions)
+        {
+            printf("\n| %-8d | %-12s | %-8s | %-25s | %-11d | %-25s | %-10.2f |",
+                ts.id, ts.date.c_str(), ts.type.c_str(), ts.description.c_str(), ts.categoryId, ts.categoryName.c_str(), ts.amount);
+        }
 
-    // Header
-    printf("%-8s %-12s %-25s %-15s %-10s",
-            "Id", "Date", "Description", "Category", "Amount");
+        std::cout << "\n";
 
-	if (id == 0) {
-		// If Id 0 print all for menu 2 - Display Transactions
-		for (const auto& ts : transactions) {
-            cPrintsBetterTables(ts.id, ts.date, ts.desc, ts.cat, ts.amt);
-		}
-	} else {
+        w = 120;
+        do { std::cout << "-"; } while ( w-- > 0 );
+
+  } else {
+      int w = 120;
+      do { std::cout << "-"; } while ( w-- > 0 );
+      // C Prints Better tables - Headers
+      printf("\n%-8s %-12s %-8s %-25s %-8s %-25s %-10s\n", "| Id      ",
+             "| Date        ", "| Type    ", "| Description              ",
+             "| CategoryId",
+             " | CategoryName             ", "| Amount     |");
+
+        w = 120;
+        do { std::cout << "-"; } while ( w-- > 0 );
+
 		// Else prints transaction by id.
-		for (const auto& ts : transactions) {
-			if (int(id) == ts.id) {
-                cPrintsBetterTables(ts.id, ts.date, ts.desc, ts.cat, ts.amt);
-			}
+        for (const auto& ts : transactions)
+        {
+          if (int(id) == ts.id) {
+              printf("\n| %-8d | %-12s | %-8s | %-25s | %-11d | %-25s | %-10.2f |",
+                ts.id, ts.date.c_str(), ts.type.c_str(), ts.description.c_str(), ts.categoryId, ts.categoryName.c_str(), ts.amount);
+            }
 		}
+
+        std::cout << "\n";
+
+        w = 120;
+        do { std::cout << "-"; } while ( w-- > 0 );
 	}
 
 	return 0;
 }
 
-int PersonalFinanceSystem::findIndexById(int targetId) {
+int PersonalFinanceSystem::deleteTransactionById(int idToDelete)
+{
+    // Open the database connection
+    if (!openDB())
+    {
+        std::cerr << "Failed to open database in deleteTransactionById().\n";
+        return -1;
+    }
 
-	for (size_t i = 0; i < transactions.size(); ++i) {
-		if (transactions[i].id == targetId) {
-			return static_cast<int>(i);
-		}
-	}
+    const char *sql = "DELETE FROM Transactions WHERE TransactionId = ?;";
 
+    sqlite3_stmt *stmt = nullptr;
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+
+    if (rc != SQLITE_OK) {
+        std::cerr << "Failed to prepare delete statement: "
+                  << sqlite3_errmsg(db) << std::endl;
+        closeDB();
+        return -1;
+    }
+
+    // Bind the TransactionId parameter
+    sqlite3_bind_int(stmt, 1, idToDelete);
+
+    // Execute
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        std::cerr << "Error deleting transaction: "
+                  << sqlite3_errmsg(db) << std::endl;
+    } else {
+        int changes = sqlite3_changes(db);
+        if (changes > 0) {
+            std::cout << "\nTransaction with ID " << idToDelete
+                      << " deleted successfully.\n";
+        } else {
+            std::cout << "\nNo transaction found with ID "
+                      << idToDelete << ".\n";
+        }
+    }
+
+    // Cleanup
+    sqlite3_finalize(stmt);
+    closeDB();
+    return 0;
+}
+
+bool PersonalFinanceSystem::updateRecord(int transactionId,
+                                         const std::string& field,
+                                         const std::string& newValue)
+{
+    if (!openDB()) { return -1; }
+
+    sqlite3_stmt* stmt = nullptr;
+
+    // Validate Field Name
+    const std::vector<std::string> validFields = {"Date", "Type", "Description", "CategoryId", "Amount"};
+    if (std::find(validFields.begin(), validFields.end(), field) ==
+        validFields.end())
+    {
+        std::cerr << "Error: Invalid field '" << field << "'." << std::endl;
+        return false;
+    }
+
+    std::string specialSql = "UPDATE Transactions SET " + field + " = ? WHERE TransactionId = ?;";
+
+    if (sqlite3_prepare_v2(db, specialSql.c_str(), -1, &stmt, nullptr) !=
+        SQLITE_OK)
+    {
+        std::cerr << "SQL prepare error: " << sqlite3_errmsg(db) << std::endl;
+    }
+
+    // Bind Values
+    if (field == "Amount")
+    {
+      double value = std::stod(newValue);
+      sqlite3_bind_double(stmt, 1, value);
+    } else if (field == "CategoryId")
+    {
+      int value = std::stoi(newValue);
+      sqlite3_bind_int(stmt, 1, value);
+    } else
+    {
+        sqlite3_bind_text(stmt, 1, newValue.c_str(), -1, SQLITE_TRANSIENT);
+    }
+
+    sqlite3_bind_int(stmt, 2, transactionId);
+
+    int rc = sqlite3_step(stmt);
+    bool success = (rc == SQLITE_DONE);
+
+    if (!success)
+    {
+        std::cerr << "SQL execution error: " << sqlite3_errmsg(db) << std::endl;
+    } else
+    {
+      std::cout << "Record with TransactionId " << transactionId
+                << " updated successfully."
+                << std::endl;
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    return true;
+}
+
+void PersonalFinanceSystem::loadCategoriesFromDB()
+{
+    categories.clear();
+
+    if (!openDB()) {
+        std::cerr << "Failed to open database in loadTransactionFromDB().\n";
+        return;
+    }
+
+    static const char *SQL_GET_CATEGORIES = R"(SELECT * FROM Category;)";
+
+    sqlite3_stmt *stmt = nullptr;
+    int rc = sqlite3_prepare_v2(db, SQL_GET_CATEGORIES, -1, &stmt, nullptr);
+
+    if (rc != SQLITE_OK) {
+        std::cerr << "Failed to prepare SELECT statement: "
+                  << sqlite3_errmsg(db) << std::endl;
+        closeDB();
+        return;
+    }
+
+    while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+        std::string tryVar = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)) ?: "";
+
+    categories.push_back(std::move(tryVar));
+}
+
+if (rc != SQLITE_DONE)
+{
+    std::cerr << "Error retrieving transactions: "
+        << sqlite3_errmsg(db) << std::endl;
+    } else {
+        std::cout << "Loaded " << categories.size()
+                  << " categories.\n\n";
+    }
+
+    sqlite3_finalize(stmt);
+    closeDB();
+}
+
+void PersonalFinanceSystem::loadTransactionFromDB()
+{
+    transactions.clear();
+
+    if (!openDB()) {
+        std::cerr << "Failed to open database in loadTransactionFromDB().\n";
+        return;
+    }
+
+    sqlite3_stmt *stmt = nullptr;
+    int rc = sqlite3_prepare_v2(db, SQL_GET_ALL, -1, &stmt, nullptr);
+
+    if (rc != SQLITE_OK) {
+        std::cerr << "Failed to prepare SELECT statement: "
+                  << sqlite3_errmsg(db) << std::endl;
+        closeDB();
+        return;
+    }
+
+   while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+    Transactions t;
+
+    t.id           = sqlite3_column_int(stmt, 0);
+    t.date         = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)) ?: "";
+    t.description  = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2)) ?: "";
+    t.categoryId   = sqlite3_column_int(stmt, 3);
+    t.categoryName = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4)) ?: "";
+    t.amount       = sqlite3_column_double(stmt, 5);
+    t.type         = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 6)) ?: "";
+
+    transactions.push_back(std::move(t));
+}
+
+if (rc != SQLITE_DONE)
+{
+    std::cerr << "Error retrieving transactions: "
+        << sqlite3_errmsg(db) << std::endl;
+    } else {
+        std::cout << "Loaded " << transactions.size()
+                  << " transactions from database.\n\n";
+    }
+
+    sqlite3_finalize(stmt);
+    closeDB();
+}
+
+int PersonalFinanceSystem::findIndexById(int targetId)
+{
+  for (size_t i = 0; i < transactions.size(); ++i)
+  {
+    if (transactions[i].id == targetId)
+    {
+        return static_cast<int>(i);
+    }
+  }
 	return -1;
-}
-
-void PersonalFinanceSystem::updateDate(const int id, const std::string newDate) {
-
-	int index = findIndexById(id);
-
-	if (isValidDate(newDate)) {
-		transactions[index].date = newDate;
-	} else { std::cout << "Something went wrong in updateDate()\n"; }
-}
-
-void PersonalFinanceSystem::updateDescription(const int id, const std::string newDesc) {
-	int i = findIndexById(id);
-	transactions[i].desc = newDesc;
-}
-
-void PersonalFinanceSystem::updateAmount(const int id, const double newAmt) {
-	int i = findIndexById(id);
-	transactions[i].amt = newAmt;
-}
-
-int PersonalFinanceSystem::deleteTransactionById(int targetId) {
-	auto it = std::remove_if(transactions.begin(), transactions.end(),
-				[targetId](const Transactions& t) { return t.id == targetId; });
-
-	if (it != transactions.end()) {
-		transactions.erase(it, transactions.end());
-		std::cout << "Transaction with ID " << targetId << " deleted.\n";
-		return 1;
-	}
-
-	return -1;
-}
+  }
 
 void PersonalFinanceSystem::summaryReport() {
 	std::cout << "Hello from summaryReport()\n";
 }
 
-int PersonalFinanceSystem::getLastId() {
-    if (transactions.empty()) {
-        return 0;
-	} else { return transactions.back().id; }
+double PersonalFinanceSystem::getBalance()
+{
+    balance = 0;
+    for (auto& t : transactions) { balance += t.amount; }
+    return balance ;
 }
 
-double PersonalFinanceSystem::getBalance() {
-    balance = 0;
-    for (auto &t : transactions) { balance += t.amt; }
-    return balance ;
+void PersonalFinanceSystem::tryCat()
+{
+    int columns = 0;
+    int max_columns = 4;
+
+    for (auto &t : categories)
+    {
+      if (columns < max_columns) {
+        std::cout  << " | " << t;
+      } else { std::cout << t; }
+
+        columns++;
+        if (columns == max_columns)
+        {
+            // four column table
+            std::cout << " |\n";
+            columns = 0; // reset
+        }
+    }
 }
