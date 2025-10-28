@@ -47,32 +47,80 @@ void PersonalFinanceSystem::closeDB() {
 
 int PersonalFinanceSystem::addCategory(const std::string& categoryName)
 {
-    if (!db) { return -1; }
+    // Open DB for this operation
+    if (!openDB()) {
+        std::cerr << "Failed to open database in addCategory().\n";
+        return -1;
+    }
 
-    const char* sql = SQL_GET_CATEGORY_ID;
     sqlite3_stmt* stmt = nullptr;
+    int categoryId = -1;
 
-    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK) {
-        std::cerr << "Prepare failed: " << sqlite3_errmsg(db) << std::endl;
+    // 1) Try to find existing category id
+    const char* sqlSelect = R"SQL(
+        SELECT CategoryId FROM Category WHERE CategoryDescription = ?;
+    )SQL";
+
+    if (sqlite3_prepare_v2(db, sqlSelect, -1, &stmt, nullptr) != SQLITE_OK) {
+        std::cerr << "Prepare SELECT failed: " << sqlite3_errmsg(db) << std::endl;
+        closeDB();
         return -1;
     }
 
-    sqlite3_bind_text(stmt, 1, categoryName.c_str(), -1, SQLITE_TRANSIENT);
-
-    if (sqlite3_step(stmt) != SQLITE_DONE) {
-        std::cerr << "Insert failed: " << sqlite3_errmsg(db) << std::endl;
+    if (sqlite3_bind_text(stmt, 1, categoryName.c_str(), -1, SQLITE_TRANSIENT) != SQLITE_OK) {
+        std::cerr << "Bind SELECT failed: " << sqlite3_errmsg(db) << std::endl;
         sqlite3_finalize(stmt);
+        closeDB();
         return -1;
     }
 
+    int rc = sqlite3_step(stmt);
+    if (rc == SQLITE_ROW) {
+        categoryId = sqlite3_column_int(stmt, 0);
+        sqlite3_finalize(stmt);
+        closeDB();
+        return categoryId;
+    } else if (rc != SQLITE_DONE) {
+        std::cerr << "SELECT step error: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_finalize(stmt);
+        closeDB();
+        return -1;
+    }
     sqlite3_finalize(stmt);
 
-    return static_cast<int>(sqlite3_last_insert_rowid(db));
-}
+    // 2) Not found -> INSERT the category
+    const char* sqlInsert = R"SQL(
+        INSERT INTO Category (CategoryDescription) VALUES (?);
+    )SQL";
 
-void PersonalFinanceSystem::printCategories() {
-  for (auto& cat : categories) { std::cout << cat << "\n"; }
-  }
+    if (sqlite3_prepare_v2(db, sqlInsert, -1, &stmt, nullptr) != SQLITE_OK) {
+        std::cerr << "Prepare INSERT failed: " << sqlite3_errmsg(db) << std::endl;
+        closeDB();
+        return -1;
+    }
+
+    if (sqlite3_bind_text(stmt, 1, categoryName.c_str(), -1, SQLITE_TRANSIENT) != SQLITE_OK) {
+        std::cerr << "Bind INSERT failed: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_finalize(stmt);
+        closeDB();
+        return -1;
+    }
+
+    rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        std::cerr << "INSERT failed: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_finalize(stmt);
+        closeDB();
+        return -1;
+    }
+
+    // get the last inserted row id (CategoryId)
+    sqlite3_finalize(stmt);
+    categoryId = static_cast<int>(sqlite3_last_insert_rowid(db));
+
+    closeDB();
+    return categoryId;
+}
 
 int PersonalFinanceSystem::getCategoryId(const std::string& categoryName)
 {

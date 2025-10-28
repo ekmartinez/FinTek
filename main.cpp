@@ -16,29 +16,31 @@ int main(void)
 		printHeader();
 
         // Starts Dashboard
-        std::cout << "\nLedger Balance: $" << pfs.getBalance() << std::endl;
+        std::cout << "\nResults of Operations YTD: $" << pfs.getBalance() << std::endl;
         // Ends Dashboard
 
 		std::cout << "\n"
-            << "-------------Reporting--------------\n"
-            << "| 1. Net Income / Loss per Period  |\n"
-			<< "| 2. View Transactions             |\n" // 3. View Categories
-			<< "------------------------------------\n\n"
-            << "------------Transactions------------\n"
-            << "| 3. Add Transaction               |\n"
-			<< "| 4. Update Transaction            |\n"
-			<< "| 5. Delete Transaction            |\n"
-			<< "------------------------------------\n\n"
-            << "-------------Categories-------------\n"
-			<< "| 6. Add Category                  |\n"
-			<< "| 7. Update Category               |\n"
-			<< "| 8. Delete Category               |\n"
-			<< "------------------------------------\n\n"
-            << "------------Configurations----------\n"
-			<< "| 9. Update Threshold Amount       |\n"
-			<< "------------------------------------\n"
-			<< "| 0. Exit                          |\n"
-			<< "------------------------------------\n\n"
+            << "-------------Reporting---------------\n"
+            << "|  1. Net Income / Loss per Period  |\n"
+			<< "|  2. Search by Date                |\n"
+			<< "|  3. View Transactions             |\n"
+			<< "|  4. View Categories               |\n"
+			<< "-------------------------------------\n\n"
+            << "------------Transactions-------------\n"
+            << "|  5. Add Transaction               |\n"
+			<< "|  6. Update Transaction            |\n"
+			<< "|  7. Delete Transaction            |\n"
+			<< "-------------------------------------\n\n"
+            << "-------------Categories--------------\n"
+			<< "|  8. Add Category                  |\n"
+			<< "|  9. Update Category               |\n"
+			<< "| 10. Delete Category               |\n"
+			<< "-------------------------------------\n\n"
+            << "------------Configurations-----------\n"
+			<< "| 11. Update Threshold Amount       |\n"
+			<< "-------------------------------------\n"
+			<< "|  0. Exit                          |\n"
+			<< "-------------------------------------\n\n"
 			<< "   Choose an option >>> ";
 
 		std::string line = "";
@@ -66,7 +68,10 @@ int main(void)
                 pressEnterToContinue();
                 break;
                 }
-            case 2:
+
+            case 2: { std::cout << "Search by Date.."; }
+
+            case 3:
             {
                 // SEARCH TRANSACTIONS
                 while (1)
@@ -91,12 +96,16 @@ int main(void)
                 }
                 break;
             }
-            case 3:
+            case 4: { std::cout << "View Categories"; }
+            case 5:
             {
                 // ADD TRANSACTION
-                std::string date = getCurrentDate();
+
+                std::string date = "";
+
                 while (1)
                 {
+                    date = getCurrentDate();
                     printHeader();
 
                     std::cout << "\nEnter Transaction's date "
@@ -108,12 +117,9 @@ int main(void)
                     {
                         date = getCurrentDate();
                         break;
-                    } else {
-                            std::cout << "There was problem in the getCurrentDate() function." << std::endl;
-                            continue;
                     }
+                    break;
                 }
-
                 // ENTER Limit
                 // TODO: Limit size
                 std::string type = "";
@@ -149,50 +155,65 @@ int main(void)
 
                 // ENTER DESCRIPTION
                 // TODO: Limit size
+
                 std::string description = "";
                 std::cout << "Enter Description: ";
                 std::getline(std::cin, description);
                 // ----------------------------------
 
+
+
+
+
+
                 // CATEGORIZATION
                 //
-                std::string categoryName = "";
 
+                int categoryId = 0;
+                std::string categoryName = "";
                 while (1) {
-                    printHeader();
                     std::cout << "Enter category: ";
                     std::getline(std::cin, categoryName);
                     // ----------------------------------
 
                     if (pfs.getCategoryId(categoryName) == -1)
                     {
-                        std::string tmp = "";
                         std::cout << "Category does not exist, do you want to add it? (1 - Yes | 2 - No): ";
-                        std::getline(std::cin, tmp);
-                        int answer = std::stoi(tmp);
 
-                        if (answer == 1) {
+                        std::string tmp = "";
+                        std::getline(std::cin, tmp);
+                        int opts = std::stoi(tmp);
+
+                        if (opts == 1) {
                           pfs.addCategory(categoryName);
+                          categoryId = pfs.getCategoryId(categoryName);
                           break;
                         } else break;
                     }
                     break;
                 }
+
+                categoryId = pfs.getCategoryId(categoryName);
                 // ENDS CATEGORIZATION
 
                 // AMOUNT
-                printHeader();
                 std::string tmpAmt = "";
                 std::cout << "Enter transaction's amount: ";
                 std::getline(std::cin, tmpAmt);
                 double amount = std::stod(tmpAmt);
                 // Threshold stored in db - Todo: check.
 
+
+                // Just to summarize
+
+
+
                 // Data summary before saving
                 std::cout << "\nData Entered and ready to be saved:\n\n"
                         << "Date: " << date << std::endl
                         << "Description: " << description << std::endl
-                        << "Category: " << categoryName << std::endl
+                        << "CategoryId: " << categoryId << std::endl
+                        << "CategoryName: " << categoryName << std::endl
                         << "Amount: " << amount << std::endl
                         << "Type: " << type << std::endl;
 
@@ -224,7 +245,8 @@ int main(void)
                 }
             }
 
-            case 4:
+            case 6:
+                // update
             {
               while (1)
               {
@@ -306,7 +328,7 @@ int main(void)
               }
               break;
            }
-            case 5:
+            case 7:
             {
                 // DELETE TRANSACTION
                 while (1)
@@ -366,7 +388,7 @@ int main(void)
                 break;
             }
 
-            case 6:
+            case 8:
             {
                 // ADD CATEGORY
                 printHeader();
@@ -387,19 +409,19 @@ int main(void)
 
                 break;
             }
-            case 7:
+            case 9:
             {
                 printHeader();
                 std::cout << "\nHello from updateCategory() \n";
                 break;
             }
-            case 8:
+            case 10:
             {
                 printHeader();
                 std::cout << "\nHello from deleteCategory() \n";
                 break;
             }
-            case 9:
+            case 11:
             {
                 printHeader();
                 std::cout << "\nHello from updateThreshold() \n";
@@ -427,4 +449,4 @@ int main(void)
     }
 
 	return 0;
-}
+    }
