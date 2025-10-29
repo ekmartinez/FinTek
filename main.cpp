@@ -161,11 +161,6 @@ int main(void)
                 std::getline(std::cin, description);
                 // ----------------------------------
 
-
-
-
-
-
                 // CATEGORIZATION
                 //
 
@@ -184,11 +179,19 @@ int main(void)
                         std::getline(std::cin, tmp);
                         int opts = std::stoi(tmp);
 
-                        if (opts == 1) {
+                        if (opts == 1)
+                        {
                           pfs.addCategory(categoryName);
                           categoryId = pfs.getCategoryId(categoryName);
                           break;
-                        } else break;
+                        } else
+                        {
+                          std::cout << "You can't progress unless you provide a category.\n\n";
+                          std::cout << "Do you want to exit? (1 - Yes | 2 - No): ";
+                          std::getline(std::cin, tmp);
+                          opts = std::stoi(tmp);
+                          if (opts == 1) { break; } else { continue; }
+                        }
                     }
                     break;
                 }
@@ -203,10 +206,7 @@ int main(void)
                 double amount = std::stod(tmpAmt);
                 // Threshold stored in db - Todo: check.
 
-
                 // Just to summarize
-
-
 
                 // Data summary before saving
                 std::cout << "\nData Entered and ready to be saved:\n\n"
@@ -432,11 +432,17 @@ int main(void)
                 printHeader();
                 std::cout << "\nYou have accessed the secret Location!\n\n";
 
-                std::string tmp;
-                std::cout << "\nEnter a category >> ";
-                std::getline(std::cin, tmp);
+                std::string startDate = "";
+                std::cout << "\nEnter start date (Blank for None) >> ";
+                std::getline(std::cin, startDate);
 
-                std::cout << pfs.getCategoryId(tmp);
+                std::string endDate = "";
+                std::cout << "\nEnter end date (Blank for None) >> ";
+                std::getline(std::cin, endDate);
+
+                pfs.queryTransactionsByDateRange(startDate, endDate);
+                pfs.printDateRangeResults();
+
 
                 pressEnterToContinue();
                 break;

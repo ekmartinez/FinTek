@@ -13,7 +13,19 @@ private:
     bool openDB();
     void closeDB();
 
+     // Used to load all transactions from db
     struct Transactions {
+        int id;
+        std::string date;
+        std::string description;
+        int categoryId;
+        std::string categoryName;
+        double amount;
+        std::string type;
+    };
+
+    // Used to store query results.
+    struct SearchObject {
         int id;
         std::string date;
         std::string description;
@@ -27,6 +39,7 @@ private:
 
     std::vector<std::string> categories;
     std::vector<Transactions> transactions;
+    std::vector<SearchObject> searchResults;
 
     sqlite3* openConnection();
     void closeConnection(sqlite3* db);
@@ -57,6 +70,11 @@ public:
 
     void loadCategoriesFromDB();
     void tryCat();
-};
+    void printDateRangeResults();
+
+     std::vector<SearchObject> queryTransactionsByDateRange(
+        const std::string& startDate,
+        const std::string& endDate);
+    };
 
 #endif

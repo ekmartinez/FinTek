@@ -461,6 +461,65 @@ if (rc != SQLITE_DONE)
     closeDB();
 }
 
+std::vector<PersonalFinanceSystem::SearchObject> PersonalFinanceSystem::queryTransactionsByDateRange(
+    const std::string& startDate,
+    const std::string& endDate)
+{
+    std::vector<PersonalFinanceSystem::SearchObject> results;
+    sqlite3* db = nullptr;
+
+    int rc = sqlite3_open("personal_finance.db", &db);
+    if (rc != SQLITE_OK) {
+        std::cerr << "Error opening database: " << sqlite3_errmsg(db) << std::endl;
+        return results;
+    }
+
+    static const char* sql = R"(
+        SELECT
+            t.TransactionId,
+            t.Date,
+            t.Description,
+            c.CategoryDescription,
+            t.Amount,
+            t.Type
+        FROM Transactions t
+        LEFT JOIN Category c ON t.CategoryId = c.CategoryId
+        WHERE t.Date BETWEEN ? AND ?
+        ORDER BY t.Date ASC;
+    )";
+
+
+    sqlite3_stmt* stmt = nullptr;
+    rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    if (rc != SQLITE_OK) {
+        std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_close(db);
+        return results;
+    }
+
+    sqlite3_bind_text(stmt, 1, startDate.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 2, endDate.c_str(), -1, SQLITE_STATIC);
+
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        PersonalFinanceSystem::SearchObject tx;
+
+        tx.id           = sqlite3_column_int(stmt, 0);
+        tx.date         = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)) ?: "";
+        tx.description  = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2)) ?: "";
+        tx.categoryId   = sqlite3_column_int(stmt, 3);
+        tx.categoryName = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4)) ?: "";
+        tx.amount       = sqlite3_column_double(stmt, 5);
+        tx.type         = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 6)) ?: "";
+
+        results.push_back(tx);
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(db);
+
+    return results;
+}
+
 int PersonalFinanceSystem::findIndexById(int targetId)
 {
   for (size_t i = 0; i < transactions.size(); ++i)
@@ -483,6 +542,32 @@ double PersonalFinanceSystem::getBalance()
     for (auto& t : transactions) { balance += t.amount; }
     return balance ;
 }
+
+void PersonalFinanceSystem::printDateRangeResults() {
+
+      int w = 120;
+      do { std::cout << "-"; } while ( w-- > 0 );
+      // C Prints Better tables - Headers
+      printf("\n%-8s %-12s %-8s %-25s %-8s %-25s %-10s\n", "| Id      ",
+             "| Date        ", "| Type    ", "| Description              ",
+             "| CategoryId",
+             " | CategoryName             ", "| Amount     |");
+
+        w = 120;
+        do { std::cout << "-"; } while ( w-- > 0 );
+
+        // If Id 0 print all transactions
+        for (const auto& ts : searchResults)
+        {
+            printf("\n| %-8d | %-12s | %-8s | %-25s | %-11d | %-25s | %-10.2f |",
+                ts.id, ts.date.c_str(), ts.type.c_str(), ts.description.c_str(), ts.categoryId, ts.categoryName.c_str(), ts.amount);
+        }
+
+        std::cout << "\n";
+
+        w = 120;
+        do { std::cout << "-"; } while ( w-- > 0 );
+  }
 
 void PersonalFinanceSystem::tryCat()
 {
