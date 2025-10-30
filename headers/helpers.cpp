@@ -1,6 +1,7 @@
-#include <ctime> 
-#include <regex>				 
-#include <iomanip>				 
+#include <ctime>
+#include <chrono>
+#include <regex>
+#include <iomanip>
 #include <sstream>
 #include <iostream>
 
@@ -75,4 +76,21 @@ bool isValidDate(const std::string &date)
 	if (maxDay == 0 || day < 1 || day > maxDay) { return false; }
 
 	return true;
+}
+
+std::string getCurrentYearMonth() {
+    auto now = std::chrono::system_clock::now();
+    std::time_t t = std::chrono::system_clock::to_time_t(now);
+    std::tm* tm = std::localtime(&t);
+
+    std::ostringstream oss;
+    oss << std::put_time(tm, "%Y-%m");
+    return oss.str();
+
+}
+
+int doubleLength(double value, int precision = 2) {
+    std::ostringstream oss;
+    oss << std::fixed << std::setprecision(precision) << value;
+    return static_cast<int>(oss.str().size());
 }

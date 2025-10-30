@@ -17,8 +17,9 @@ int main(void)
 		printHeader();
 
         // Starts Dashboard
-        std::cout << "\nResults of Operations YTD: $" << pfs.getBalance() << std::endl;
+        pfs.showMonthlySummary();
         // Ends Dashboard
+
 
 		std::cout << "\n"
             << "-------------Reporting---------------\n"
@@ -471,17 +472,7 @@ int main(void)
                 printHeader();
                 std::cout << "\nYou have accessed the secret Location!\n\n";
 
-                std::string startDate = "";
-                std::cout << "\nEnter start date (Blank for None) >> ";
-                std::getline(std::cin, startDate);
-
-                std::string endDate = "";
-                std::cout << "\nEnter end date (Blank for None) >> ";
-                std::getline(std::cin, endDate);
-
-                pfs.queryTransactionsByDateRange(startDate, endDate);
-                pfs.printDateRangeResults();
-
+                pfs.showMonthlySummary();
 
                 pressEnterToContinue();
                 break;

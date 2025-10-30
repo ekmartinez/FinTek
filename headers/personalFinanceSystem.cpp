@@ -565,12 +565,67 @@ void PersonalFinanceSystem::printDateRangeResults() {
         do { std::cout << "-"; } while ( w-- > 0 );
   }
 
+
+void PersonalFinanceSystem::showMonthlySummary() {
+    if (!openDB()) {                          // must set db (sqlite3*) in openDB()
+        std::cerr << "Cannot open database.\n";
+        return;
+    }
+
+    // This SQL returns income and expense sums in one row (0 if no rows)
+    const std::string sql =
+        "SELECT "
+        "COALESCE(SUM(CASE WHEN Type = 'income' THEN Amount END), 0.0) AS income_sum, "
+        "COALESCE(SUM(CASE WHEN Type = 'expense' THEN Amount END), 0.0) AS expense_sum "
+        "FROM Transactions "
+        "WHERE strftime('%Y-%m', Date) = ?;";   // Date column from your schema
+
+    sqlite3_stmt* stmt = nullptr;
+    if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
+        std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << '\n';
+        closeDB();
+        return;
+    }
+
+    std::string yearMonth = getCurrentYearMonth();
+    if (sqlite3_bind_text(stmt, 1, yearMonth.c_str(), -1, SQLITE_TRANSIENT) != SQLITE_OK) {
+        std::cerr << "Failed to bind parameter: " << sqlite3_errmsg(db) << '\n';
+        sqlite3_finalize(stmt);
+        closeDB();
+        return;
+    }
+
+    double income = 0.0, expense = 0.0;
+    int rc = sqlite3_step(stmt);
+    if (rc == SQLITE_ROW) {
+        income  = sqlite3_column_double(stmt, 0); // income_sum
+        expense = sqlite3_column_double(stmt, 1); // expense_sum
+    } else if (rc != SQLITE_DONE) {
+        std::cerr << "Query error: " << sqlite3_errmsg(db) << '\n';
+    }
+
+    sqlite3_finalize(stmt);
+    closeDB();
+
+    double net = income + expense;
+
+    std::cout << "\nFor the month (" << yearMonth << "):\n";
+    std::cout << "-------------------------\n";
+
+    // C Prints better tables
+    printf("| %-10s | %8.2f |\n", "Income", income);
+    printf("| %-10s | %8.2f |\n", "Expense", expense);
+    std::cout << "-------------------------\n";
+    printf("| %-10s | %8.2f| \n", "Net", net);
+    std::cout << "-------------------------\n";
+}
+
 void PersonalFinanceSystem::tryCat()
 {
     int columns = 0;
     int max_columns = 4;
 
-    for (auto &t : categories)
+    for (auto& t : categories)
     {
       if (columns < max_columns) {
         std::cout  << " | " << t;

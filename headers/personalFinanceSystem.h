@@ -75,6 +75,10 @@ public:
      std::vector<SearchObject> queryTransactionsByDateRange(
         const std::string& startDate,
         const std::string& endDate);
+
+    void showMonthlySummary();
+
     };
+
 
 #endif
