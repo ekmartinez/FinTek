@@ -2,11 +2,8 @@
 #include <cerrno>
 #include <vector>
 #include <cstdio>
-#include <iomanip>
-#include <fstream>
 #include <iostream>
 #include <algorithm>
-#include <exception>
 
 #include "sqlite3.h"
 #include "helpers.h"
@@ -461,17 +458,17 @@ if (rc != SQLITE_DONE)
     closeDB();
 }
 
-std::vector<PersonalFinanceSystem::SearchObject> PersonalFinanceSystem::queryTransactionsByDateRange(
+
+std::vector<PersonalFinanceSystem::SearchObject>
+PersonalFinanceSystem::queryTransactionsByDateRange(
     const std::string& startDate,
     const std::string& endDate)
 {
-    std::vector<PersonalFinanceSystem::SearchObject> results;
-    sqlite3* db = nullptr;
+    searchResults.clear();
 
-    int rc = sqlite3_open("personal_finance.db", &db);
-    if (rc != SQLITE_OK) {
-        std::cerr << "Error opening database: " << sqlite3_errmsg(db) << std::endl;
-        return results;
+    if (!openDB()) {
+        std::cerr << "Error opening database.\n";
+        return searchResults;
     }
 
     static const char* sql = R"(
@@ -479,6 +476,7 @@ std::vector<PersonalFinanceSystem::SearchObject> PersonalFinanceSystem::queryTra
             t.TransactionId,
             t.Date,
             t.Description,
+            c.CategoryId,
             c.CategoryDescription,
             t.Amount,
             t.Type
@@ -488,13 +486,12 @@ std::vector<PersonalFinanceSystem::SearchObject> PersonalFinanceSystem::queryTra
         ORDER BY t.Date ASC;
     )";
 
-
     sqlite3_stmt* stmt = nullptr;
-    rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
     if (rc != SQLITE_OK) {
         std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << std::endl;
-        sqlite3_close(db);
-        return results;
+        closeDB();
+        return searchResults;
     }
 
     sqlite3_bind_text(stmt, 1, startDate.c_str(), -1, SQLITE_STATIC);
@@ -502,7 +499,6 @@ std::vector<PersonalFinanceSystem::SearchObject> PersonalFinanceSystem::queryTra
 
     while (sqlite3_step(stmt) == SQLITE_ROW) {
         PersonalFinanceSystem::SearchObject tx;
-
         tx.id           = sqlite3_column_int(stmt, 0);
         tx.date         = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)) ?: "";
         tx.description  = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2)) ?: "";
@@ -511,13 +507,13 @@ std::vector<PersonalFinanceSystem::SearchObject> PersonalFinanceSystem::queryTra
         tx.amount       = sqlite3_column_double(stmt, 5);
         tx.type         = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 6)) ?: "";
 
-        results.push_back(tx);
+        searchResults.push_back(tx);
     }
 
     sqlite3_finalize(stmt);
-    sqlite3_close(db);
+    closeDB();
 
-    return results;
+    return searchResults;
 }
 
 int PersonalFinanceSystem::findIndexById(int targetId)

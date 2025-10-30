@@ -1,3 +1,4 @@
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
@@ -69,7 +70,29 @@ int main(void)
                 break;
                 }
 
-            case 2: { std::cout << "Search by Date.."; }
+            case 2: {
+                // Search by Date
+                printHeader();
+                std::cout << "\nSearch by Date\n--------------\n\n";
+
+                std::string startDate = "";
+                std::cout << "\nEnter start date (Blank for None) >> ";
+                std::getline(std::cin, startDate);
+                if (startDate.empty()) { startDate = "0000-01-01"; }
+
+                std::string endDate = "";
+                std::cout << "\nEnter end date (Blank for None) >> ";
+                std::getline(std::cin, endDate);
+                if (endDate.empty()) { endDate = "9999-12-31"; }
+
+                pfs.queryTransactionsByDateRange(startDate, endDate);
+                pfs.printDateRangeResults();
+
+                pressEnterToContinue();
+
+                break;
+
+            }
 
             case 3:
             {
@@ -221,8 +244,22 @@ int main(void)
                 std::string input;
                 std::getline(std::cin, input);
 
+                double absAmount = std::abs(amount);
+
                 if (input == "y")
                 {
+                    // income / expense
+                    if (type == "expense") {
+                        amount = -absAmount;
+
+                    } else if (type == "income") {
+                      amount = absAmount;
+                    } else {
+                        std::cout << "Something went wrong.\n";
+                        break;
+                    }
+
+
                     int categoryId = pfs.getCategoryId(categoryName);
                     pfs.addTransaction(date, description, categoryId, amount, type);
                     pfs.loadTransactionFromDB();
@@ -234,7 +271,8 @@ int main(void)
                     if (opts == "y")
                     {
                         printHeader();
-                        continue;
+                        continue; // NOT WORKING TODO
+                        // why not wrap case into while?
                     } else if (input == "n")
                         printHeader();
                         break;
@@ -243,6 +281,7 @@ int main(void)
                     std::cout << "Wrong option.\n";
                     break;
                 }
+                break;
             }
 
             case 6:
