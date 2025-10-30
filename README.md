@@ -3,6 +3,7 @@
 Personal Finance
 Income / Expense Tracker.
 
+
 ``` c++
 /*
 ########:'####:'##::: ##:'########:'########:'##:::'##::'##::::'##:::W
@@ -16,33 +17,92 @@ Income / Expense Tracker.
 
 FinTek - Personal Finance System
 
-Ledger Balance: $121.66
+For the month (2025-10):
+-------------------------
+| Income     |   225.00 |
+| Expense    |   -86.99 |
+-------------------------
+| Net        |   138.01|
+-------------------------
 
--------------Reporting--------------
-| 1. Net Income / Loss per Period  |
-| 2. Search Transactions           |
-------------------------------------
+-------------Reporting---------------
+|  1. Net Income / Loss per Period  |
+|  2. Search by Date                |
+|  3. View Transactions             |
+|  4. View Categories               |
+-------------------------------------
 
-------------Transactions------------
-| 3. Add Transaction               |
-| 4. Update Transaction            |
-| 5. Delete Transaction            |
-------------------------------------
+------------Transactions-------------
+|  5. Add Transaction               |
+|  6. Update Transaction            |
+|  7. Delete Transaction            |
+-------------------------------------
 
--------------Categories-------------
-| 6. Add Category                  |
-| 7. Update Category               |
-| 8. Delete Category               |
-------------------------------------
+-------------Categories--------------
+|  8. Add Category                  |
+|  9. Update Category               |
+| 10. Delete Category               |
+-------------------------------------
 
-------------Configurations----------
-| 9. Update Threshold Amount       |
-------------------------------------
-| 0. Exit                          |
-------------------------------------
+------------Configurations-----------
+| 11. Update Threshold Amount       |
+-------------------------------------
+|  0. Exit                          |
+-------------------------------------
 
-   Choose an option >>> 
-   
+   Choose an option >>>
+*/ 
+
+```
+
+``` c++
+/* 
+########:'####:'##::: ##:'########:'########:'##:::'##::'##::::'##:::W
+##.....::. ##:: ###:: ##:... ##..:: ##.....:: ##::'##:::. ##:::. ##:::
+##:::::::: ##:: ####: ##:::: ##:::: ##::::::: ##:'##:::::. ##:::. ##::
+######:::: ##:: ## ## ##:::: ##:::: ######::: #####::::'::. ##:::. ##:
+##...::::: ##:: ##. ####:::: ##:Z:: ##...:::: ##. ##:::::: ##:::: ##::
+##:::::::: ##:: ##:. ###:::: ##:::: ##::::::: ##:. ##:::: ##:::: ##:::
+##:::::::'####: ##::. ##:::: ##:::: ########: ##::. ##:: ##:::: ##::::
+3..::::::::...::..::::..:::::..:::::........:..::::..:::.:::::..::::::
+
+FinTek - Personal Finance System
+
+Search Transaction
+------------------
+
+Enter Id of transaction (None for all):
+-------------------------------------------------------------------------------------------------------------------------
+| Id       | Date         | Type     | Description               | CategoryId  | CategoryName              | Amount     |
+-------------------------------------------------------------------------------------------------------------------------
+| 78       | 2025-12-20   | income   | Year Bonus                | 18          | Income                    | 500.00     |
+| 77       | 2025-12-09   | expense  | Grocery store             | 20          | Food                      | -175.00    |
+| 76       | 2025-11-18   | income   | Emergency work            | 18          | Income                    | 1500.00    |
+| 75       | 2025-11-03   | income   | Salary Nov                | 18          | Income                    | 2800.00    |
+| 54       | 2025-10-30   | expense  | Salchicha                 | 17          | Groceries                 | -3.99      |
+| 53       | 2025-10-30   | income   | Fixes Amt bug             | 16          | Testing Fees              | 225.00     |
+| 74       | 2025-10-22   | expense  | Car Wash                  | 22          | Transport                 | -25.00     |
+| 73       | 2025-10-06   | expense  | Phone Bill                | 21          | Utilities                 | -58.00     |
+| 72       | 2025-09-27   | income   | Interest Earned           | 18          | Income                    | 40.00      |
+| 71       | 2025-09-10   | expense  | Gym Membership            | 24          | Health                    | -55.00     |
+| 70       | 2025-08-19   | expense  | Groceries                 | 20          | Food                      | -170.00    |
+| 69       | 2025-08-05   | income   | Salary Aug                | 18          | Income                    | 2800.00    |
+| 68       | 2025-07-16   | expense  | Electric Bill             | 21          | Utilities                 | -110.00    |
+| 67       | 2025-07-08   | income   | Side Project              | 18          | Income                    | 420.00     |
+| 66       | 2025-06-11   | expense  | Movie Tickets             | 23          | Entertainment             | -45.00     |
+| 65       | 2025-06-04   | income   | Salary June               | 18          | Income                    | 2800.00    |
+| 64       | 2025-05-21   | expense  | Internet Bill             | 21          | Utilities                 | -65.00     |
+| 63       | 2025-05-06   | expense  | Dining Out                | 20          | Food                      | -75.00     |
+| 62       | 2025-04-25   | income   | Bonus Payout              | 18          | Income                    | 300.00     |
+| 61       | 2025-04-09   | expense  | Gas Refill                | 22          | Transport                 | -60.00     |
+| 60       | 2025-03-18   | income   | Tax Refund                | 18          | Income                    | 450.00     |
+| 59       | 2025-03-03   | expense  | Utility Bill              | 21          | Utilities                 | -120.00    |
+| 58       | 2025-02-14   | expense  | Grocery Store             | 20          | Food                      | -185.00    |
+| 57       | 2025-02-05   | income   | Freelance Work            | 18          | Income                    | 600.00     |
+| 56       | 2025-01-17   | expense  | Rent Payment              | 19          | Housing                   | -950.00    |
+| 55       | 2025-01-08   | income   | Salary Jan                | 18          | Income                    | 2800.00    |
+-------------------------------------------------------------------------------------------------------------------------
+
+Press enter to continue ...
 */
-
 ```
