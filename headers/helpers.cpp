@@ -20,7 +20,7 @@ void printHeader() {
 	<< "##:::::::'####: ##::. ##:::: ##:::: ########: ##::. ##:: ##:::: ##::::\n"
 	<< "3..::::::::...::..::::..:::::..:::::........:..::::..:::.:::::..::::::\n";
 
-	std::cout << "\nFinTek - Personal Finance System" << std::endl;
+	std::cout << "\nFinTek - Personal Finance System\n" << std::endl;
 }
 
 void pressEnterToContinue()

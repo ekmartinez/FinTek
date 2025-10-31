@@ -21,7 +21,7 @@ int main(void)
         // Ends Dashboard
 
 
-		std::cout << "\n"
+		std::cout << "\n\n"
             << "-------------Reporting---------------\n"
             << "|  1. Net Income / Loss per Period  |\n"
 			<< "|  2. Search by Date                |\n"
