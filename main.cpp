@@ -63,10 +63,9 @@ int main(void)
             }
             case 1:
             {
-                // Historical Monthly Income / Expense
+                // Monthly Income / Expense
                 printHeader();
-                std::cout << "\n\nThis section wil contain the income/expense per month"
-                    << " for the 12 of the current calender year.\n" << std::endl;
+                pfs.showYearlySummary();
                 pressEnterToContinue();
                 break;
                 }
@@ -472,7 +471,7 @@ int main(void)
                 printHeader();
                 std::cout << "\nYou have accessed the secret Location!\n\n";
 
-                pfs.showMonthlySummary();
+                pfs.showYearlySummary();
 
                 pressEnterToContinue();
                 break;

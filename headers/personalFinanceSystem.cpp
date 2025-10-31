@@ -610,14 +610,74 @@ void PersonalFinanceSystem::showMonthlySummary() {
     double net = income + expense;
 
     std::cout << "\nFor the month (" << yearMonth << "):\n";
-    std::cout << "-------------------------\n";
+    std::cout << "-------------------------------------\n";
 
     // C Prints better tables
-    printf("| %-10s | %8.2f |\n", "Income", income);
-    printf("| %-10s | %8.2f |\n", "Expense", expense);
-    std::cout << "-------------------------\n";
-    printf("| %-10s | %8.2f| \n", "Net", net);
-    std::cout << "-------------------------\n";
+    printf("|  %-10s    |     %8.2f     |\n", "Income", income);
+    printf("|  %-10s    |     %8.2f     |\n", "Expense", expense);
+    std::cout << "-------------------------------------\n";
+    printf("|  %-10s    |     %8.2f     | \n", "Net", net);
+    std::cout << "-------------------------------------\n";
+}
+
+void PersonalFinanceSystem::showYearlySummary() {
+  if (!openDB()) {
+      std::cerr << "Cannot open database.\n";
+      return;
+  }
+
+  const char *sql = R"(
+    SELECT
+        strftime('%m', Date) AS month,
+        SUM(CASE WHEN Type = 'income' THEN Amount ELSE 0 END) AS income,
+        SUM(CASE WHEN Type = 'expense' THEN Amount ELSE 0 END) AS expense
+    FROM Transactions
+    WHERE strftime('%Y', Date) = strftime('%Y', 'now')
+    GROUP BY month
+    ORDER BY month;
+    )";
+
+  sqlite3_stmt *stmt;
+  if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK) {
+      std::cerr << "Failed to prepare statement.\n";
+      closeDB();
+      return;
+  }
+
+  std::vector<std::string> monthNames = {"Jan", "Feb", "Mar", "Apr",
+                                         "May", "Jun", "Jul", "Aug",
+                                         "Sep", "Oct", "Nov", "Dec"};
+
+  std::vector<double> income(12, 0.0);
+  std::vector<double> expense(12, 0.0);
+
+  while (sqlite3_step(stmt) == SQLITE_ROW) {
+      int monthIndex = std::stoi(reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0))) -1;
+      income[monthIndex] = sqlite3_column_double(stmt, 1);
+      expense[monthIndex] = sqlite3_column_double(stmt, 2);
+  }
+
+  sqlite3_finalize(stmt);
+  closeDB();
+
+  // Print table header
+  printf("%-10s %12s %12s %12s\n", "Month", "Income", "Expense", "Net");
+  printf("------------------------------------------------------------\n");
+
+  double totalIncome = 0.00;
+  double totalExpense = 0.00;
+
+  for (int i = 0; i < 12; ++i) {
+    double net = income[i] + expense[i];
+    totalIncome += income[i];
+    totalExpense += expense[i];
+    printf("%-10s %12.2f %12.2f %12.2f\n",
+    monthNames[i].c_str(), income[i], expense[i], net);
+  }
+
+  printf("------------------------------------------------------------\n");
+  printf("%-10s %12.2f %12.2f %12.2f\n",
+    "Total", totalIncome, totalExpense, totalIncome + totalExpense);
 }
 
 void PersonalFinanceSystem::tryCat()
