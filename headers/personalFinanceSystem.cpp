@@ -314,7 +314,7 @@ int PersonalFinanceSystem::viewTransaction(int id = 0)
         // If Id 0 print all transactions
         for (const auto& ts : transactions)
         {
-            printf("\n| %-8d | %-12s | %-8s | %-25s | %-11d | %-25s | %-10.2f |",
+            printf("\n| %-8d | %-12s | %-8s | %-25s | %-11d | %-25s | %10.2f |",
                 ts.id, ts.date.c_str(), ts.type.c_str(), ts.description.c_str(), ts.categoryId, ts.categoryName.c_str(), ts.amount);
         }
 
@@ -339,7 +339,7 @@ int PersonalFinanceSystem::viewTransaction(int id = 0)
         for (const auto& ts : transactions)
         {
           if (int(id) == ts.id) {
-              printf("\n| %-8d | %-12s | %-8s | %-25s | %-11d | %-25s | %-10.2f |",
+              printf("\n| %-8d | %-12s | %-8s | %-25s | %-11d | %-25s | %10.2f |",
                 ts.id, ts.date.c_str(), ts.type.c_str(), ts.description.c_str(), ts.categoryId, ts.categoryName.c_str(), ts.amount);
             }
 		}
