@@ -108,18 +108,57 @@ int main(void)
 
 
                     if (id.empty()) {
-                        pfs.findTransaction(0);
+                        pfs.viewTransaction(0);
                         pressEnterToContinue();
                         break;
                     } else {
-                        pfs.findTransaction(std::stoi(id));
+                        pfs.viewTransaction(std::stoi(id));
                         pressEnterToContinue();
                         break;
                     }
                 }
                 break;
             }
-            case 4: { std::cout << "View Categories"; }
+
+            case 4:
+              {
+                printHeader();
+
+                std::cout << "----------------\n";
+                std::cout << "|  Categories  |\n";
+                std::cout << "----------------\n\n";
+
+                // Income Categories
+                std::cout << "-------------------------------\n";
+                std::cout << "|      Income Categories      |\n";
+                std::cout << "-------------------------------\n";
+                for (const auto& c : pfs.viewCategories())
+                {
+                    if (c.Type == "Income")
+                    {
+                        printf("| %-14s | %-10.2f |\n", c.categoryDescription.c_str(), c.totalAmount);
+                    }
+                }
+                std::cout << "-------------------------------\n\n";
+
+                // Expense Categories
+                std::cout << "-------------------------------\n";
+                std::cout << "|      Expense Categories     |\n";
+                std::cout << "-------------------------------\n";
+                for (const auto& c : pfs.viewCategories())
+                {
+                  if (c.Type == "Expense")
+                    {
+                        printf("| %-14s | %-10.2f |\n", c.categoryDescription.c_str(),
+                        c.totalAmount);
+                    }
+                }
+                std::cout << "-------------------------------\n";
+
+                pressEnterToContinue();
+                break;
+            }
+
             case 5:
             {
                 // ADD TRANSACTION
@@ -382,7 +421,7 @@ int main(void)
                     std::cout << "\nYou've chosen to delete id: "
                                 << idToDelete << ". \n";
 
-                    pfs.findTransaction(idToDelete);
+                    pfs.viewTransaction(idToDelete);
 
                     std::cout << "\n\nAre you sure? (1 - Yes / 2 - No): ";
                     std::string tmp;

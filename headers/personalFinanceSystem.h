@@ -34,12 +34,18 @@ private:
         std::string type;
     };
 
-    double balance = 0.0;
+    // Used to Store Category results
+    struct CategorySummary
+    {
+        int categoryId;
+        std::string categoryDescription;
+        double totalAmount;
+        std::string Type;
+    };
 
-    std::vector<std::string> categories; // Not used until now.
     std::vector<Transactions> transactions; // Primary Data structure
     std::vector<QueryObject> searchResults; // Used in sql daterange search
-
+    std::vector<std::string> categories;
 public:
     explicit PersonalFinanceSystem(const std::string &path);
     ~PersonalFinanceSystem();
@@ -54,9 +60,8 @@ public:
         const std::string& startDate,
         const std::string& endDate);
 
-    int findTransaction(int id);
-    int findCategory(int catId);
-
+    int viewTransaction(int id);
+    std::vector<CategorySummary> viewCategories();
 
     // Adding Records
     // -----------------

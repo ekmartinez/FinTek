@@ -250,7 +250,54 @@ void PersonalFinanceSystem::printDateRangeResults() {
         do { std::cout << "-"; } while ( w-- > 0 );
 }
 
-int PersonalFinanceSystem::findTransaction(int id = 0)
+std::vector<PersonalFinanceSystem::CategorySummary>
+PersonalFinanceSystem::viewCategories() {
+    std::vector<CategorySummary> results;
+
+    if (!openDB()) { return results; }
+
+    const char *sql = R"(
+        SELECT
+            c.CategoryId,
+            c.CategoryDescription,
+            IFNULL(SUM(t.Amount), 0) AS TotalAmount,
+            c.Type
+        FROM Category c
+        LEFT JOIN Transactions t ON c.CategoryId = t.CategoryId
+        GROUP BY c.CategoryId, c.CategoryDescription, c.Type
+        ORDER BY c.CategoryDescription;
+    )";
+
+    sqlite3_stmt *stmt = nullptr;
+    int rc = sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr);
+
+    if (rc != SQLITE_OK) {
+        std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << std::endl;
+        closeDB();
+        return results;
+    }
+
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        CategorySummary record;
+        record.categoryId = sqlite3_column_int(stmt, 0);
+
+        const unsigned char *desc = sqlite3_column_text(stmt, 1);
+        record.categoryDescription = desc ? reinterpret_cast<const char*>(desc) : "";
+
+        record.totalAmount = sqlite3_column_double(stmt, 2);
+
+        const unsigned char *type = sqlite3_column_text(stmt, 3);
+        record.Type = type ? reinterpret_cast<const char*>(type) : "";
+
+        results.push_back(record);
+    }
+
+    sqlite3_finalize(stmt);
+    closeDB();
+    return results;
+}
+
+int PersonalFinanceSystem::viewTransaction(int id = 0)
 {
   if (id == 0) {
       int w = 120;
