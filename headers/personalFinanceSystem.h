@@ -84,7 +84,7 @@ private:
     // Deleting Records
     // --------------------
     int deleteTransactionById(int idToDelete);
-
+    bool deleteCategoryById(int categoryId);
 
     // Helpers
     // ----------------------------------------------------

@@ -38,9 +38,7 @@ int main(void)
 			<< "|  9. Update Category               |\n"
 			<< "| 10. Delete Category               |\n"
 			<< "-------------------------------------\n\n"
-            << "------------Configurations-----------\n"
-			<< "| 11. Update Threshold Amount       |\n"
-			<< "-------------------------------------\n"
+            << "-------------------------------------\n"
 			<< "|  0. Exit                          |\n"
 			<< "-------------------------------------\n\n"
 			<< "   Choose an option >>> ";
@@ -397,6 +395,7 @@ int main(void)
                             }
                             case 4:
                             {
+                                // TODO: THIS IS NOT UPDATING
                                 std::cout << "Enter new Category: ";
                                 std::getline(std::cin, tmp);
                                 pfs.updateRecord(id, "Category", tmp);
@@ -599,9 +598,58 @@ int main(void)
             case 10:
             {
                 printHeader();
-                std::cout << "\nHello from deleteCategory() \n";
+                // DELETE TRANSACTION
+                while (1)
+                {
+                    std::string line = "";
+                    std::cout << "Enter category to delete: ";
+                    std::getline(std::cin, line);
+
+                    int idToDelete = pfs.getCategoryId(line);
+
+                    std::cout << "\nYou've chosen to delete category: "
+                                << idToDelete << ". \n";
+
+                    std::cout << "\n\nAre you sure? (1 - Yes / 2 - No): ";
+                    std::string tmp;
+                    std::getline(std::cin, tmp);
+
+                    int opts = std::stoi(tmp);
+
+                    switch (opts)
+                    {
+                        case 1:
+                        {
+                            bool d = pfs.deleteCategoryById(idToDelete);
+                            if (d == true)
+                            {
+                                std::cout << "\nCategory has been deleted. \n\n";
+                            }
+
+                          pfs.loadTransactionFromDB();
+                            pfs.loadCategoriesFromDB();
+                            pressEnterToContinue();
+                            break;
+                        }
+                        case 2:
+                        {
+                            std::cout << "\nThere was a problem. \n";
+
+                            pressEnterToContinue();
+                            break;
+                        }
+                        default:
+                        {
+                            std::cout << "Wrong selection (1 - Yes / 2 - No)" << std::endl;
+                            pressEnterToContinue();
+                            break;
+                        }
+                    }
+                    break;
+                }
                 break;
             }
+
             case 11:
             {
                 printHeader();

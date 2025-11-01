@@ -7,7 +7,6 @@
 
 #include "sqlite3.h"
 #include "helpers.h"
-#include "queries.h"
 #include "personalFinanceSystem.h"
 
 // ---------- Start DB Init -------------------------------
@@ -371,6 +370,11 @@ void PersonalFinanceSystem::addTransaction(
 
     sqlite3_stmt* stmt = nullptr;
 
+    static const char* SQL_INSERT_TRANSACTION = R"(
+        INSERT INTO Transactions (Date, Description, CategoryId, Amount, Type)
+        VALUES (?, ?, ?, ?, ?);
+    )";
+
     // Prepare the SQL
     if (sqlite3_prepare_v2(db, SQL_INSERT_TRANSACTION, -1, &stmt, nullptr) != SQLITE_OK) {
         std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << std::endl;
@@ -661,7 +665,6 @@ bool PersonalFinanceSystem::updateCategory(std::string& cat,
 
 // Deleting Records
 // ---------------------------------------------------------------------------
-
 int PersonalFinanceSystem::deleteTransactionById(int idToDelete)
 {
     // Open the database connection
@@ -707,6 +710,38 @@ int PersonalFinanceSystem::deleteTransactionById(int idToDelete)
     closeDB();
     return 0;
 }
+bool PersonalFinanceSystem::deleteCategoryById(int categoryId)
+{
+    if (!openDB()) {
+        std::cerr << "Failed to open database in deleteCategoryById().\n";
+        return false;
+    }
+
+    const char* sqlDelete = "DELETE FROM Category WHERE CategoryId = ?;";
+    sqlite3_stmt* stmt = nullptr;
+
+    if (sqlite3_prepare_v2(db, sqlDelete, -1, &stmt, nullptr) != SQLITE_OK) {
+        std::cerr << "Prepare failed: " << sqlite3_errmsg(db) << std::endl;
+        closeDB();
+        return false;
+    }
+
+    sqlite3_bind_int(stmt, 1, categoryId);
+
+    int rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        std::cerr << "Delete failed: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_finalize(stmt);
+        closeDB();
+        return false;
+    }
+
+    sqlite3_finalize(stmt);
+    closeDB();
+
+    std::cout << "Category with ID " << categoryId << " deleted successfully.\n";
+    return true;
+}
 
 // Helpers
 // ------------------------------------------------------------------
@@ -720,11 +755,15 @@ int PersonalFinanceSystem::getCategoryId(const std::string& categoryName)
         return -1;
     }
 
-    const char* sql = SQL_GET_CATEGORY_ID;
     sqlite3_stmt* stmt = nullptr;
 
+    static const char *SQL_GET_CATEGORY_ID = R"(
+    SELECT CategoryId
+    FROM Category
+    WHERE trim(lower(CategoryDescription)) = trim(lower(?));)";
+
     // Prepare the SQL statement
-    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK) {
+    if (sqlite3_prepare_v2(db, SQL_GET_CATEGORY_ID, -1, &stmt, nullptr) != SQLITE_OK) {
         std::cerr << "Prepare failed: " << sqlite3_errmsg(db) << std::endl;
         closeDB();
         return -1;
@@ -804,6 +843,21 @@ void PersonalFinanceSystem::loadTransactionFromDB()
     }
 
     sqlite3_stmt *stmt = nullptr;
+
+    static const char* SQL_GET_ALL = R"(
+        SELECT
+            t.TransactionId,
+            t.Date,
+            t.Description,
+            t.CategoryId,
+            c.CategoryDescription,
+            t.Amount,
+            t.Type
+        FROM Transactions t
+        LEFT JOIN Category c ON t.CategoryId = c.CategoryId
+        ORDER BY t.Date DESC;
+    )";
+
     int rc = sqlite3_prepare_v2(db, SQL_GET_ALL, -1, &stmt, nullptr);
 
     if (rc != SQLITE_OK) {
