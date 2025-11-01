@@ -395,18 +395,37 @@ int main(void)
                             }
                             case 4:
                             {
-                                // TODO: THIS IS NOT UPDATING
+
+                              std::cout << "Updating the category is not "
+                                           "available at the moment.\n"
+                                           << "Instead delete and enter the transaction again.\n\n";
+                                /*
                                 std::cout << "Enter new Category: ";
                                 std::getline(std::cin, tmp);
-                                pfs.updateRecord(id, "Category", tmp);
 
-                                std::cout << "Category has been updated!.\n";
+                                int categoryId = pfs.getCategoryId(tmp);
+
+                                if (categoryId == -1) {
+                                    std::cerr << "Category not found!\n";
+                                    pressEnterToContinue();
+                                    break;
+                                }
+
+
+                                if (pfs.updateRecord(id, "CategoryId", std::to_string(categoryId))) {
+                                    std::cout << "Category has been updated!.\n";
+                                } else {
+                                    std::cerr << "Failed to update category.\n";
+                                }
+                                */
+
                                 pressEnterToContinue();
-
                                 break;
                             }
                             case 5:
                             {
+                              // Todo: need to convert to credit when expense
+
                                 std::cout << "Enter new Amount: ";
                                 std::getline(std::cin, tmp);
                                 pfs.updateRecord(id, "Amount", tmp);
@@ -649,14 +668,7 @@ int main(void)
                 }
                 break;
             }
-
-            case 11:
-            {
-                printHeader();
-                std::cout << "\nHello from updateThreshold() \n";
-                break;
-            }
-           default: {
+          default: {
                 std::cout << "Nevermind.\n";
                 break;
             }

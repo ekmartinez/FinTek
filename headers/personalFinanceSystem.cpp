@@ -490,65 +490,75 @@ int PersonalFinanceSystem::addCategory(const std::string& categoryName)
 
 // Updating Records
 // -------------------------------------------------------------------------
+
 bool PersonalFinanceSystem::updateRecord(int transactionId,
                                          const std::string& field,
                                          const std::string& newValue)
 {
-    if (!openDB()) { return -1; }
-
-    sqlite3_stmt* stmt = nullptr;
-
-    // Validate Field Name
-    const std::vector<std::string> validFields = {"Date", "Type", "Description", "CategoryId", "Amount"};
-
-    if (std::find(validFields.begin(), validFields.end(), field) ==
-        validFields.end())
-    {
-        std::cerr << "Error: Invalid field '" << field << "'." << std::endl;
+    if (!openDB()) {
+        std::cerr << "Failed to open database in updateRecord().\n";
         return false;
     }
 
-    std::string specialSql = "UPDATE Transactions SET " + field + " = ? WHERE TransactionId = ?;";
+    sqlite3_stmt* stmt = nullptr;
 
-    if (sqlite3_prepare_v2(db, specialSql.c_str(), -1, &stmt, nullptr) !=
-        SQLITE_OK)
-    {
-        std::cerr << "SQL prepare error: " << sqlite3_errmsg(db) << std::endl;
+    // Validate field name
+    const std::vector<std::string> validFields = {"Date", "Type", "Description", "CategoryId", "Amount"};
+    if (std::find(validFields.begin(), validFields.end(), field) == validFields.end()) {
+        std::cerr << "Error: Invalid field '" << field << "'.\n";
+        closeDB();
+        return false;
     }
 
-    // Bind Values
-    if (field == "Amount")
-    {
-      double value = std::stod(newValue);
-      sqlite3_bind_double(stmt, 1, value);
-    } else if (field == "CategoryId")
-    {
-      int value = std::stoi(newValue);
-      sqlite3_bind_int(stmt, 1, value);
-    } else
-    {
+    std::string sql = "UPDATE Transactions SET " + field + " = ? WHERE TransactionId = ?;";
+
+    if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
+        std::cerr << "SQL prepare error: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_finalize(stmt);
+        closeDB();
+        return false;
+    }
+
+    // Bind values depending on field type
+    if (field == "Amount") {
+        try {
+            double val = std::stod(newValue);
+            sqlite3_bind_double(stmt, 1, val);
+        } catch (...) {
+            std::cerr << "Invalid numeric value for Amount: " << newValue << std::endl;
+            sqlite3_finalize(stmt);
+            closeDB();
+            return false;
+        }
+    } else if (field == "CategoryId") {
+        try {
+            int val = std::stoi(newValue);
+            sqlite3_bind_int(stmt, 1, val);
+        } catch (...) {
+            std::cerr << "Invalid numeric value for CategoryId: " << newValue << std::endl;
+            sqlite3_finalize(stmt);
+            closeDB();
+            return false;
+        }
+    } else {
         sqlite3_bind_text(stmt, 1, newValue.c_str(), -1, SQLITE_TRANSIENT);
     }
 
     sqlite3_bind_int(stmt, 2, transactionId);
 
     int rc = sqlite3_step(stmt);
-
     bool success = (rc == SQLITE_DONE);
 
-    if (!success)
-    {
+    if (!success) {
         std::cerr << "SQL execution error: " << sqlite3_errmsg(db) << std::endl;
-    } else
-    {
-      std::cout << "Record with TransactionId " << transactionId
-                << " updated successfully."
-                << std::endl;
+    } else {
+        std::cout << "Record with TransactionId " << transactionId << " updated successfully.\n";
     }
 
     sqlite3_finalize(stmt);
-    sqlite3_close(db);
-    return true;
+    closeDB();
+
+    return success;
 }
 
 bool PersonalFinanceSystem::updateCategory(std::string& cat,
