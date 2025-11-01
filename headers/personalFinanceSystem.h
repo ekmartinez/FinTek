@@ -3,7 +3,6 @@
 
 #include <string>
 #include <vector>
-#include <algorithm>  // for std::find
 #include <sqlite3.h>
 
 class PersonalFinanceSystem {
@@ -13,6 +12,7 @@ private:
     bool openDB();
     void closeDB();
 
+     // Used to load all transactions from db
     struct Transactions {
         int id;
         std::string date;
@@ -23,40 +23,79 @@ private:
         std::string type;
     };
 
-    double balance = 0.0;
+    // Used to store query results.
+    struct QueryObject {
+        int id;
+        std::string date;
+        std::string description;
+        int categoryId;
+        std::string categoryName;
+        double amount;
+        std::string type;
+    };
 
+    // Used to Store Category results
+    struct CategorySummary
+    {
+        int categoryId;
+        std::string categoryDescription;
+        double totalAmount;
+        std::string Type;
+    };
+
+    std::vector<Transactions> transactions; // Primary Data structure
+    std::vector<QueryObject> searchResults; // Used in sql daterange search
     std::vector<std::string> categories;
-    std::vector<Transactions> transactions;
 
-    sqlite3* openConnection();
-    void closeConnection(sqlite3* db);
+  public:
 
-public:
     explicit PersonalFinanceSystem(const std::string &path);
     ~PersonalFinanceSystem();
 
-    // CRUD and utility functions
-    void addTransaction(const std::string& date, const std::string& description, int categoryId, double amount, const std::string& type);
-    int findTransaction(int id);
-    int getCategoryId(const std::string& categoryName);
+    // Dashboard Net Income for the month.
+    void showMonthlySummary();
+
+   // Reporting
+    void showYearlySummary(); // YTD Report
+    void printDateRangeResults(); // Print helper for query
+    std::vector<QueryObject> queryTransactionsByDateRange( // Search by date
+        const std::string& startDate,
+        const std::string& endDate);
+
+    int viewTransaction(int id);
+
+    std::vector<CategorySummary> viewCategories();
+
+    // Adding Records
+    // -----------------
+    void addTransaction(const std::string &date, const std::string &description,
+                        int categoryId, double amount, const std::string &type);
+
     int addCategory(const std::string& categoryName);
-    int deleteTransactionById(int targetId);
-    void loadTransactionFromDB();
-    bool updateRecord(int transactionId, const std::string& field, const std::string& newValue);
 
-    void printCategories();
+    // Updating Records
+    // -----------------
+    bool updateRecord(int transactionId, const std::string &field,
+                      const std::string& newValue);
 
-    void deleteCategory(const std::string& cat);
+    bool updateCategory(std::string &cat, const std::string &newCat,
+                        const std::string& newType);
 
-    void displayTransactions();
+    // Deleting Records
+    // --------------------
+    int deleteTransactionById(int idToDelete);
+    bool deleteCategoryById(int categoryId);
 
+    // Helpers
+    // ----------------------------------------------------
+    int getCategoryId(const std::string& categoryName); // if exists
     int findIndexById(int targetId);
-    void summaryReport();
-    int getLastId();
-    double getBalance();
 
+    // Loads Data from database into structs
+    void loadTransactionFromDB();
     void loadCategoriesFromDB();
-    void tryCat();
-};
+
+    };
+
 
 #endif
