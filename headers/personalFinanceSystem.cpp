@@ -80,6 +80,7 @@ void PersonalFinanceSystem::showMonthlySummary() {
 
     double income = 0.0, expense = 0.0;
     int rc = sqlite3_step(stmt);
+
     if (rc == SQLITE_ROW) {
         income  = sqlite3_column_double(stmt, 0); // income_sum
         expense = sqlite3_column_double(stmt, 1); // expense_sum
@@ -169,9 +170,8 @@ void PersonalFinanceSystem::showYearlySummary() {
 
 std::vector<PersonalFinanceSystem::QueryObject>
 PersonalFinanceSystem::queryTransactionsByDateRange(
-    const std::string& startDate,
-    const std::string& endDate)
-{
+    const std::string &startDate, const std::string &endDate
+                                                    ) {
     searchResults.clear();
 
     if (!openDB()) {
@@ -250,8 +250,7 @@ void PersonalFinanceSystem::printDateRangeResults() {
         do { std::cout << "-"; } while ( w-- > 0 );
 }
 
-std::vector<PersonalFinanceSystem::CategorySummary>
-PersonalFinanceSystem::viewCategories() {
+std::vector<PersonalFinanceSystem::CategorySummary> PersonalFinanceSystem::viewCategories() {
     std::vector<CategorySummary> results;
 
     if (!openDB()) { return results; }
@@ -303,7 +302,7 @@ int PersonalFinanceSystem::viewTransaction(int id = 0)
       int w = 120;
       do { std::cout << "-"; } while ( w-- > 0 );
       // C Prints Better tables - Headers
-      printf("\n%-8s %-12s %-8s %-25s %-8s %-25s %-10s\n", "| Id      ",
+      printf("\n%-8s %-12s %-8s %-25s %-8s %-25s %10s\n", "| Id      ",
              "| Date        ", "| Type    ", "| Description              ",
              "| CategoryId",
              " | CategoryName             ", "| Amount     |");
@@ -327,7 +326,7 @@ int PersonalFinanceSystem::viewTransaction(int id = 0)
       int w = 120;
       do { std::cout << "-"; } while ( w-- > 0 );
       // C Prints Better tables - Headers
-      printf("\n%-8s %-12s %-8s %-25s %-8s %-25s %-10s\n", "| Id      ",
+      printf("\n%-8s %-12s %-8s %-25s %-8s %-25s %10s\n", "| Id      ",
              "| Date        ", "| Type    ", "| Description              ",
              "| CategoryId",
              " | CategoryName             ", "| Amount     |");
@@ -394,6 +393,7 @@ void PersonalFinanceSystem::addTransaction(
 
     // Execute insert
     int rc = sqlite3_step(stmt);
+
     if (rc != SQLITE_DONE) {
         std::cerr << "Insert failed: " << sqlite3_errmsg(db) << std::endl;
     } else {
@@ -435,6 +435,7 @@ int PersonalFinanceSystem::addCategory(const std::string& categoryName)
     }
 
     int rc = sqlite3_step(stmt);
+
     if (rc == SQLITE_ROW) {
         categoryId = sqlite3_column_int(stmt, 0);
         sqlite3_finalize(stmt);
@@ -446,6 +447,7 @@ int PersonalFinanceSystem::addCategory(const std::string& categoryName)
         closeDB();
         return -1;
     }
+
     sqlite3_finalize(stmt);
 
     // 2) Not found -> INSERT the category
@@ -484,7 +486,6 @@ int PersonalFinanceSystem::addCategory(const std::string& categoryName)
 
 // Updating Records
 // -------------------------------------------------------------------------
-
 bool PersonalFinanceSystem::updateRecord(int transactionId,
                                          const std::string& field,
                                          const std::string& newValue)
@@ -495,6 +496,7 @@ bool PersonalFinanceSystem::updateRecord(int transactionId,
 
     // Validate Field Name
     const std::vector<std::string> validFields = {"Date", "Type", "Description", "CategoryId", "Amount"};
+
     if (std::find(validFields.begin(), validFields.end(), field) ==
         validFields.end())
     {
@@ -527,6 +529,7 @@ bool PersonalFinanceSystem::updateRecord(int transactionId,
     sqlite3_bind_int(stmt, 2, transactionId);
 
     int rc = sqlite3_step(stmt);
+
     bool success = (rc == SQLITE_DONE);
 
     if (!success)
@@ -541,7 +544,118 @@ bool PersonalFinanceSystem::updateRecord(int transactionId,
 
     sqlite3_finalize(stmt);
     sqlite3_close(db);
+    return true;
+}
 
+bool PersonalFinanceSystem::updateCategory(std::string& cat,
+                                           const std::string& newCat,
+                                           const std::string& newType)
+{
+    if (!openDB()) {
+        std::cerr << "Failed to open database in updateCategory().\n";
+        return false;
+    }
+
+    int currentId = -1;
+    {
+        // --- Check if the old category exists ---
+        const char* sqlCheck = "SELECT CategoryId FROM Category WHERE CategoryDescription = ?;";
+        sqlite3_stmt* checkStmt = nullptr;
+
+        if (sqlite3_prepare_v2(db, sqlCheck, -1, &checkStmt, nullptr) == SQLITE_OK) {
+            sqlite3_bind_text(checkStmt, 1, cat.c_str(), -1, SQLITE_TRANSIENT);
+            if (sqlite3_step(checkStmt) == SQLITE_ROW)
+                currentId = sqlite3_column_int(checkStmt, 0);
+        }
+        sqlite3_finalize(checkStmt);
+    }
+
+    if (currentId == -1) {
+        std::cerr << "Category '" << cat << "' not found.\n";
+        closeDB();
+        return false;
+    }
+
+    // --- Check if new category name already exists ---
+    if (!newCat.empty()) {
+        const char* sqlDup = "SELECT CategoryId FROM Category WHERE CategoryDescription = ?;";
+        sqlite3_stmt* dupStmt = nullptr;
+        int existingId = -1;
+
+        if (sqlite3_prepare_v2(db, sqlDup, -1, &dupStmt, nullptr) == SQLITE_OK) {
+            sqlite3_bind_text(dupStmt, 1, newCat.c_str(), -1, SQLITE_TRANSIENT);
+            if (sqlite3_step(dupStmt) == SQLITE_ROW)
+                existingId = sqlite3_column_int(dupStmt, 0);
+        }
+
+        sqlite3_finalize(dupStmt);
+
+        if (existingId != -1 && existingId != currentId) {
+            std::cerr << "Error: Category '" << newCat << "' already exists.\n";
+            closeDB();
+            return false;
+        }
+    }
+
+    // --- Build SQL dynamically based on provided parameters ---
+    std::string sql = "UPDATE Category SET ";
+    bool hasPrev = false;
+
+    if (!newCat.empty()) {
+        sql += "CategoryDescription = ?";
+        hasPrev = true;
+    }
+    if (!newType.empty()) {
+        if (hasPrev) sql += ", ";
+        sql += "Type = ?";
+        hasPrev = true;
+    }
+
+    if (!hasPrev) {
+        std::cerr << "No fields to update. Both newCat and newType are empty.\n";
+        closeDB();
+        return false;
+    }
+
+    sql += " WHERE CategoryDescription = ?;";
+
+    sqlite3_stmt* stmt = nullptr;
+
+    if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
+        std::cerr << "Prepare failed: " << sqlite3_errmsg(db) << std::endl;
+        closeDB();
+        return false;
+    }
+
+    // --- Bind dynamically ---
+    int bindIndex = 1;
+    if (!newCat.empty()) {
+        sqlite3_bind_text(stmt, bindIndex++, newCat.c_str(), -1, SQLITE_TRANSIENT);
+    }
+    if (!newType.empty()) {
+        sqlite3_bind_text(stmt, bindIndex++, newType.c_str(), -1, SQLITE_TRANSIENT);
+    }
+    sqlite3_bind_text(stmt, bindIndex, cat.c_str(), -1, SQLITE_TRANSIENT);
+
+    // --- Execute the statement ---
+    int rc = sqlite3_step(stmt);
+    if (rc != SQLITE_DONE) {
+        std::cerr << "Step failed: " << sqlite3_errmsg(db) << std::endl;
+        sqlite3_finalize(stmt);
+        closeDB();
+        return false;
+    }
+
+    int changes = sqlite3_changes(db);
+    sqlite3_finalize(stmt);
+    closeDB();
+
+    if (changes == 0) {
+        std::cout << "No changes made — values may already be up to date.\n";
+        return false;
+    }
+
+    std::cout << "Category updated successfully.\n";
     return true;
 }
 
@@ -665,19 +779,19 @@ void PersonalFinanceSystem::loadCategoriesFromDB()
         std::string tryVar = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1)) ?: "";
 
     categories.push_back(std::move(tryVar));
-}
-
-if (rc != SQLITE_DONE)
-{
-    std::cerr << "Error retrieving transactions: "
-        << sqlite3_errmsg(db) << std::endl;
-    } else {
-        std::cout << "Loaded " << categories.size()
-                  << " categories.\n\n";
     }
 
-    sqlite3_finalize(stmt);
-    closeDB();
+    if (rc != SQLITE_DONE)
+    {
+        std::cerr << "Error retrieving transactions: "
+            << sqlite3_errmsg(db) << std::endl;
+        } else {
+            std::cout << "Loaded " << categories.size()
+                    << " categories.\n\n";
+        }
+
+        sqlite3_finalize(stmt);
+        closeDB();
 }
 
 void PersonalFinanceSystem::loadTransactionFromDB()

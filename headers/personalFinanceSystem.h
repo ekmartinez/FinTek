@@ -46,7 +46,9 @@ private:
     std::vector<Transactions> transactions; // Primary Data structure
     std::vector<QueryObject> searchResults; // Used in sql daterange search
     std::vector<std::string> categories;
-public:
+
+  public:
+
     explicit PersonalFinanceSystem(const std::string &path);
     ~PersonalFinanceSystem();
 
@@ -61,6 +63,7 @@ public:
         const std::string& endDate);
 
     int viewTransaction(int id);
+
     std::vector<CategorySummary> viewCategories();
 
     // Adding Records
@@ -75,6 +78,8 @@ public:
     bool updateRecord(int transactionId, const std::string &field,
                       const std::string& newValue);
 
+    bool updateCategory(std::string &cat, const std::string &newCat,
+                        const std::string& newType);
 
     // Deleting Records
     // --------------------

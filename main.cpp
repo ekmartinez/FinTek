@@ -130,6 +130,7 @@ int main(void)
                 std::cout << "-------------------------------\n";
                 std::cout << "|      Income Categories      |\n";
                 std::cout << "-------------------------------\n";
+
                 for (const auto& c : pfs.viewCategories())
                 {
                     if (c.Type == "Income")
@@ -511,21 +512,90 @@ int main(void)
 
                 if (pfs.getCategoryId(newCat))
                 {
-                    std::cout << "Category already exists." << std::endl;
+                    std::cout << "\nCategory already exists." << std::endl;
+                    pressEnterToContinue();
                 } else
                 {
                     pfs.addCategory(newCat);
-                    std::cout << "Category added.\n";
+                    std::cout << "\nCategory added.\n";
+                    pressEnterToContinue();
                 }
 
                 break;
             }
+
             case 9:
             {
+             while (1)
+              {
                 printHeader();
-                std::cout << "\nHello from updateCategory() \n";
+                std::string category = "";
+                std::cout << "Enter category description: ";
+                std::getline(std::cin, category);
+
+                int categoryId = pfs.getCategoryId(category);
+
+                std::cout << "\nYou've chosen to update category: " << category << ". \n";
+
+                pfs.viewCategories();
+
+                std::vector<std::string> fields = { "Description", "Type" };
+
+                if (categoryId != -1)
+                {
+                    std::cout << "\n\n------------------------\n";
+                    std::cout << "|       Change?        |\n";
+                    std::cout << "------------------------\n";
+
+                    printf("| %-4s |  %-10s   |\n%23s", "Opt", "Field", "------------------------\n");
+
+                    int i = 1;
+                    for (auto& field : fields)
+                    {
+                        printf("| %-4d | ", i++);
+                        printf(" %-12s |\n", field.c_str());
+                    }
+
+                    std::string tmp = "";
+
+                    std::cout << "------------------------\n\n";
+                    std::cout << "Choose an option: ";
+                    std::getline(std::cin, tmp);
+                    int choice = std::stoi(tmp);
+
+                    switch (choice)
+                    {
+                        case 1:
+                        {
+                            std::cout << "Enter new Description: ";
+                            std::getline(std::cin, tmp);
+                            pfs.updateCategory(category,tmp, "");
+                            std::cout << "Description has been updated!.\n";
+                            pressEnterToContinue();
+                            break;
+                        }
+                        case 2:
+                        {
+                            std::cout << "Enter new Type: ";
+                            std::getline(std::cin, tmp);
+                            pfs.updateCategory(category,"", tmp);
+                            std::cout << "Description has been updated!.\n";
+                            pressEnterToContinue();
+                            break;
+                       }
+                        default:
+                        {
+                            std::cout << "Wrong Option.";
+                            break;
+                        }
+                    }
+                    pfs.loadCategoriesFromDB();
+                }
                 break;
+              }
+              break;
             }
+
             case 10:
             {
                 printHeader();
@@ -537,23 +607,13 @@ int main(void)
                 printHeader();
                 std::cout << "\nHello from updateThreshold() \n";
                 break;
-   }
-
-            case 23: {
-                printHeader();
-                std::cout << "\nYou have accessed the secret Location!\n\n";
-
-                pfs.showYearlySummary();
-
-                pressEnterToContinue();
-                break;
             }
-            default: {
+           default: {
                 std::cout << "Nevermind.\n";
                 break;
             }
         }
     }
 
-	return 0;
-    }
+    return 0;
+}
